@@ -2,7 +2,7 @@
 #define FWAVE_H
 
 class FWave {
-    private: 
+    private:
         static const double GRAVITY;
         static void computeEigenvalues(
             double h_l,
@@ -22,16 +22,16 @@ class FWave {
             double &netUpdateRight_h,
             double &netUpdateRight_hu
         );
-	static double computeParticleVelocity(
-	    double h_l, 
-	    double hu_l, 
-	    double h_r, 
-	    double hu_r
-	);
-	static double computeHeight (
-	    double h_l, 
-	    double h_r
-	);
+        static double computeParticleVelocity(
+            double h_l,
+            double hu_l,
+            double h_r,
+            double hu_r
+        );
+        static double computeHeight (
+            double h_l,
+            double h_r
+        );
     public:
         static void solve(
             double h_l,
