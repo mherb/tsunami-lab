@@ -2,18 +2,17 @@ import os
 
 env = Environment(tools=['default','cxxtest'])
 
-# source and test file paths
-src_files = Glob('src/*.cpp')
-tests_files = Glob('tests/*.h')
-
-# build target dir
+srcDir = '#src'
+testsDir = '#tests'
 buildDir = '#build'
 
-env.Append(CPPPATH=['#src'])
+srcFiles = Glob(os.path.join(srcDir, '*.cpp'))
+testsFiles = Glob(os.path.join(testsDir, '*.h'))
+
+env.Append(CPPPATH=[srcDir])
 
 # Unit tests
 env['CXXTEST_SKIP_ERRORS'] = True
-tests = env.CxxTest(os.path.join(buildDir, 'testrunner'), tests_files + src_files)
+tests = env.CxxTest(os.path.join(buildDir, 'testrunner'), testsFiles + srcFiles)
 
-# disable default target
 env.Default('check')
