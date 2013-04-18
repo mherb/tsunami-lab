@@ -1,2 +1,8 @@
+build
+tests/*.cpp
+
 *~
 *.o
+
+*.dblite
+*.pyc
