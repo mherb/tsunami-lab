@@ -8,11 +8,99 @@ const double FWave::GRAVITY = 9.81;
 
 const double FWave::TOLERANCE = 1e-10;
 
-void FWave::solve(double h_l, double hu_l, double h_r, double hu_r, double &netUpdateLeft_h, double &netUpdateLeft_hu, double &netUpdateRight_h, double &netUpdateRight_hu, double &waveSpeedLeft, double &waveSpeedRight){
-	double lambda_1;
-	double lambda_2;
-	computeEigenvalues (h_l, hu_l, h_r, hu_r, lambda_1, lambda_2);
-} 
+void FWave::solve(double h_l, double hu_l, double h_r, double hu_r, 
+    double &netUpdateLeft_h, double &netUpdateLeft_hu, double &netUpdateRight_h, double &netUpdateRight_hu,
+    double &waveSpeedLeft, double &waveSpeedRight){
+    
+    // Height cannot be negative
+    assert(h_l >= 0);
+    assert(h_r >= 0);
+    
+	double lambda_1, lambda_2;
+    double alpha_1, alpha_2;
+	computeEigenvalues(h_l, hu_l, h_r, hu_r, lambda_1, lambda_2);
+    computeEigencoefficients(h_l, hu_l, h_r, hu_r, lambda_1, lambda_2, alpha_1, alpha_2);
+    
+    netUpdateLeft_h = 0.0;
+    netUpdateLeft_hu = 0.0;
+    netUpdateRight_h = 0.0;
+    netUpdateRight_hu = 0.0;
+    waveSpeedLeft = 0.0;
+    waveSpeedRight = 0.0;
+    
+    /**
+     * **Compute Wavespeeds**
+     *
+     * \f[
+     * \begin{bmatrix} \lambda_l \\ \lambda_r \end{bmatrix} =
+     * \begin{cases}
+     *     \begin{bmatrix} \lambda_1 & 0 \end{bmatrix}^{\mathsf T} & \lambda_1 > 0 \land \lambda_2 > 0 \\
+     *     \begin{bmatrix} 0 & \lambda_2 \end{bmatrix}^{\mathsf T} & \lambda_1 < 0 \land \lambda_2 < 0 \\
+     *     \begin{bmatrix} \lambda_1 & \lambda_2 \end{bmatrix}^{\mathsf T} & \text{else} \\
+     * \end{cases}
+     * \f]
+     */
+    if(signbit(lambda_1) == signbit(lambda_2)) {
+        // same sign
+        if(signbit(lambda_1)) {
+            // both negative
+            waveSpeedLeft = lambda_1;
+        } else {
+            // both positive
+            waveSpeedRight = lambda_2;
+        }
+    } else {
+        // opposite sign
+        waveSpeedLeft = lambda_1;
+        waveSpeedRight = lambda_2;
+    }
+    
+    /**
+     * **Compute net updates**
+     *
+     * \f{align*}{
+     * A^-\Delta Q &=
+     * \sum\limits_{p:\lambda_p < 0} Z_p =
+     * \sum\limits_{p:\lambda_p < 0} \begin{bmatrix} \alpha_p \\ \alpha_p\lambda_p\end{bmatrix} =
+     * \begin{bmatrix} \Delta h_l \\ \Delta hu_l \end{bmatrix} \\
+     * A^+\Delta Q &=
+     * \sum\limits_{p:\lambda_p > 0} Z_p =
+     * \sum\limits_{p:\lambda_p > 0} \begin{bmatrix} \alpha_p \\ \alpha_p\lambda_p\end{bmatrix} =
+     * \begin{bmatrix} \Delta h_r \\ \Delta hu_r \end{bmatrix} \\
+     * \f}
+     */
+    if(lambda_1 > TOLERANCE) {
+        // to right
+        netUpdateRight_h += alpha_1;
+        netUpdateRight_hu += alpha_1 * lambda_1;
+    } else if(lambda_1 < -TOLERANCE) {
+        // to left
+        netUpdateLeft_h += alpha_1;
+        netUpdateLeft_hu += alpha_1 * lambda_1;
+    } else {
+        // TODO: Fix behavior
+        // lambda is (numerically) zero, which implies hu is zero
+        // however, alpha may be not be zero, so we need to handle that case
+        // in some sensible way
+        assert(alpha_1 < TOLERANCE && alpha_1 > -TOLERANCE);
+    }
+    
+    if(lambda_2 > TOLERANCE) {
+        // to right
+        netUpdateRight_h += alpha_2;
+        netUpdateRight_hu += alpha_2 * lambda_2;
+    } else if(lambda_2 < -TOLERANCE) {
+        // to left
+        netUpdateLeft_h += alpha_2;
+        netUpdateLeft_hu += alpha_2 * lambda_2;
+    } else {
+        // TODO: Fix behavior
+        // lambda is (numerically) zero, which implies hu is zero
+        // however, alpha may be not be zero, so we need to handle that case
+        // in some sensible way
+        assert(alpha_2 < TOLERANCE && alpha_2 > -TOLERANCE);
+    }
+}
 
 double FWave::computeHeight (double h_l, double h_r){
 	return 0.5 * ( h_l + h_r );
