@@ -20,8 +20,10 @@ class FWave {
         double tolerance;
         
         void computeEigenvalues(double h_l, double hu_l, double h_r, double hu_r, double &lambda_1, double &lambda_2) {
-            lambda_1 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) - sqrt( gravity * computeHeight(h_l, h_r) ) );
-            lambda_2 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) + sqrt( gravity * computeHeight(h_l, h_r) ) );
+            double velocity = computeParticleVelocity(h_l, hu_l, h_r, hu_r);
+            double height = sqrt( gravity * computeHeight(h_l, h_r) );
+            lambda_1 = velocity - height;
+            lambda_2 = velocity + height;
         }
         
         static double computeParticleVelocity( double h_l, double hu_l, double h_r, double hu_r) {
