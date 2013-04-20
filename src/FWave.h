@@ -7,7 +7,12 @@ class FWave {
          * Gravity constant in m/s^2
          */
         static const double GRAVITY;
-        
+       
+        /**
+         * Numerical tolerance for comparisons
+         */
+        static const double TOLERANCE;
+       
         static void computeEigenvalues(
             double h_l,
             double hu_l,
@@ -55,6 +60,29 @@ class FWave {
             double &delta_f_1,
             double &delta_f_2
         );
+        
+       /**
+        * Computes the eigencoefficients needed to compute the resulting waves
+        *
+        * @param[in]   h_l         Left water height
+        * @param[in]   hu_l        Left momentum
+        * @param[in]   h_r         Right water height
+        * @param[in]   hu_l        Right momentum
+        * @param[in]   lambda_1    First eigenvalue
+        * @param[in]   lambda_2    Second eigenvalue
+        * @param[out]  alpha_1     First eigencoefficient
+        * @param[out]  alpha_2     Second eigencoefficient
+        */
+       static void computeEigencoefficients(
+           double h_l,
+           double hu_l,
+           double h_r,
+           double hu_r,
+           double lambda_1,
+           double lambda_2,
+           double &alpha_1,
+           double &alpha_2
+       );
     public:
         static void solve(
             double h_l,
