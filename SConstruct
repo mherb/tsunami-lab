@@ -6,7 +6,7 @@ srcDir = '#src'
 testsDir = '#tests'
 buildDir = '#build'
 
-srcFiles = Glob(os.path.join(srcDir, '*.cpp'))
+srcFiles = Glob(os.path.join(srcDir, '*.(c|h)pp'))
 testsFiles = Glob(os.path.join(testsDir, '*.h'))
 
 env.Append(CPPPATH=[srcDir])

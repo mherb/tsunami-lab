@@ -6,7 +6,7 @@
 
 #define private public
 #define protected public
-#include <FWave.h>
+#include <FWave.hpp>
 
 class FWaveTest : public CxxTest::TestSuite {
     private:
