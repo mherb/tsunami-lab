@@ -12,16 +12,16 @@ class FWave {
         /**
          * Gravity in m/s^2
          */
-        const static double GRAVITY;
+        double gravity;
         
         /**
          * Numerical tolerance for comparisons
          */
-        const static double TOLERANCE;
+        double tolerance;
         
-        static void computeEigenvalues(double h_l, double hu_l, double h_r, double hu_r, double &lambda_1, double &lambda_2) {
-            lambda_1 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) - sqrt( GRAVITY * computeHeight(h_l, h_r) ) );
-            lambda_2 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) + sqrt( GRAVITY * computeHeight(h_l, h_r) ) );
+        void computeEigenvalues(double h_l, double hu_l, double h_r, double hu_r, double &lambda_1, double &lambda_2) {
+            lambda_1 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) - sqrt( gravity * computeHeight(h_l, h_r) ) );
+            lambda_2 = ( computeParticleVelocity(h_l, hu_l, h_r, hu_r) + sqrt( gravity * computeHeight(h_l, h_r) ) );
         }
         
         static double computeParticleVelocity( double h_l, double hu_l, double h_r, double hu_r) {
@@ -42,7 +42,7 @@ class FWave {
          * @param[out]  delta_f_1   First component of flux jump
          * @param[out]  delta_f_2   Second component of flux jump
          */
-        static void computeFluxJump(
+        void computeFluxJump(
             double h_l,
             double hu_l,
             double h_r,
@@ -79,7 +79,7 @@ class FWave {
             * where \f$g\f$ denotes the gravity constant.
             */
             delta_f_1 = hu_r - hu_l;
-            delta_f_2 = (hu_r * (hu_r / h_r)) - (hu_l * (hu_l / h_l)) + 0.5 * GRAVITY * (h_r*h_r - h_l*h_l);
+            delta_f_2 = (hu_r * (hu_r / h_r)) - (hu_l * (hu_l / h_l)) + 0.5 * gravity * (h_r*h_r - h_l*h_l);
         }
         
         /**
@@ -94,7 +94,7 @@ class FWave {
          * @param[out]  alpha_1     First eigencoefficient
          * @param[out]  alpha_2     Second eigencoefficient
          */
-        static void computeEigencoefficients(
+        void computeEigencoefficients(
             double h_l,
             double hu_l,
             double h_r,
@@ -161,12 +161,20 @@ class FWave {
             computeFluxJump(h_l, hu_l, h_r, hu_r, delta_f_1, delta_f_2);
         
             double lambda_diff = lambda_2 - lambda_1;
-            assert(lambda_diff > TOLERANCE || lambda_diff < -TOLERANCE); // lambda_diff must not be zero
+            assert(lambda_diff > tolerance || lambda_diff < -tolerance); // lambda_diff must not be zero
         
             alpha_1 = (lambda_2 * delta_f_1 - delta_f_2) / lambda_diff;
             alpha_2 = (-lambda_1 * delta_f_1 + delta_f_2) / lambda_diff;
         }
     public:
+        /**
+         * Constructor
+         *
+         * @param[in]   _gravity            Gravity constant in m/s^2
+         * @param[in]   _tolerance          Numerical tolerance
+         */
+        FWave(double _gravity = 9.81, double _tolerance = 1e-10):
+            gravity(_gravity), tolerance(_tolerance) {}
        
         /**
          * Compute net updates and resulting wavespeeds at an edge
@@ -182,7 +190,7 @@ class FWave {
          * @param[out]  waveSpeedLeft       Left wave speed
          * @param[out]  waveSpeedRight      Right wave speed
          */
-        static void solve(
+        void solve(
             double h_l,
             double hu_l,
             double h_r,
@@ -251,11 +259,11 @@ class FWave {
              * \begin{bmatrix} \Delta h_r \\ \Delta hu_r \end{bmatrix} \\
              * \f}
              */
-            if(lambda_1 > TOLERANCE) {
+            if(lambda_1 > tolerance) {
                 // to right
                 netUpdateRight_h += alpha_1;
                 netUpdateRight_hu += alpha_1 * lambda_1;
-            } else if(lambda_1 < -TOLERANCE) {
+            } else if(lambda_1 < -tolerance) {
                 // to left
                 netUpdateLeft_h += alpha_1;
                 netUpdateLeft_hu += alpha_1 * lambda_1;
@@ -264,14 +272,14 @@ class FWave {
                 // lambda is (numerically) zero, which implies hu is zero
                 // however, alpha may be not be zero, so we need to handle that case
                 // in some sensible way
-                assert(alpha_1 < TOLERANCE && alpha_1 > -TOLERANCE);
+                assert(alpha_1 < tolerance && alpha_1 > -tolerance);
             }
         
-            if(lambda_2 > TOLERANCE) {
+            if(lambda_2 > tolerance) {
                 // to right
                 netUpdateRight_h += alpha_2;
                 netUpdateRight_hu += alpha_2 * lambda_2;
-            } else if(lambda_2 < -TOLERANCE) {
+            } else if(lambda_2 < -tolerance) {
                 // to left
                 netUpdateLeft_h += alpha_2;
                 netUpdateLeft_hu += alpha_2 * lambda_2;
@@ -280,12 +288,9 @@ class FWave {
                 // lambda is (numerically) zero, which implies hu is zero
                 // however, alpha may be not be zero, so we need to handle that case
                 // in some sensible way
-                assert(alpha_2 < TOLERANCE && alpha_2 > -TOLERANCE);
+                assert(alpha_2 < tolerance && alpha_2 > -tolerance);
             }
         }
 };
-
-const double FWave::GRAVITY = 9.81;
-const double FWave::TOLERANCE = 1e-10;
 
 #endif

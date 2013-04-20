@@ -14,6 +14,9 @@ class FWaveTest : public CxxTest::TestSuite {
          * Numerical tolerance for assertions
          */
         const static double TOLERANCE = 1e-10;
+        
+        FWave fwave;
+        
     public:
         void testParticleVelocity() {
             // h_l = 16
@@ -21,7 +24,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // h_r = 9
             // u_r = -0.5
             TS_ASSERT_DELTA(
-                FWave::computeParticleVelocity(16.0, 24.0, 9.0, -4.5),
+                fwave.computeParticleVelocity(16.0, 24.0, 9.0, -4.5),
                 0.6428571428571428571,
                 TOLERANCE
             );
@@ -34,7 +37,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // hu_l = 24
             // h_r = 9
             // hu_r = -4.5
-            FWave::computeFluxJump(16.0, 24.0, 9.0, -4.5, delta_f_1, delta_f_2);
+            fwave.computeFluxJump(16.0, 24.0, 9.0, -4.5, delta_f_1, delta_f_2);
         
             TSM_ASSERT_DELTA("First component", delta_f_1, -28.5, TOLERANCE);
             TSM_ASSERT_DELTA("Second component", delta_f_2, -892.125, TOLERANCE);
@@ -43,7 +46,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // hu_l = -15
             // h_r = 6
             // hu_r = 5.5
-            FWave::computeFluxJump(12.0, -15.0, 6.0, 5.5, delta_f_1, delta_f_2);
+            fwave.computeFluxJump(12.0, -15.0, 6.0, 5.5, delta_f_1, delta_f_2);
         
             TSM_ASSERT_DELTA("First component", delta_f_1, 20.5, TOLERANCE);
             TSM_ASSERT_DELTA("Second component", delta_f_2, -543.44833333333333333333, TOLERANCE);
@@ -60,7 +63,7 @@ class FWaveTest : public CxxTest::TestSuite {
             lambda_1 = -7.04318942880952746985;
             lambda_2 = 8.61727033455629779978;
             
-            FWave::computeEigencoefficients(6.0, 13.0, 6.5, -3.5, lambda_1, lambda_2, alpha_1, alpha_2);
+            fwave.computeEigencoefficients(6.0, 13.0, 6.5, -3.5, lambda_1, lambda_2, alpha_1, alpha_2);
             
             TSM_ASSERT_DELTA("First eigencoefficient", alpha_1, -9.35854767054606546293, TOLERANCE);
             TSM_ASSERT_DELTA("Second eigencoefficient", alpha_2, -7.14145232945393453707, TOLERANCE);
@@ -72,7 +75,7 @@ class FWaveTest : public CxxTest::TestSuite {
             double waveSpeedLeft, waveSpeedRight;
             
             // Regular: Lambda1 < 0, Lambda2 > 0
-            FWave::solve(10.0, 5.0, 12.5, -3.5,
+            fwave.solve(10.0, 5.0, 12.5, -3.5,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
@@ -85,7 +88,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[Regular] Wave Speed Right", waveSpeedRight, 10.59362182183554874211, TOLERANCE);
             
             // SupersonicRight: Lambda1, Lambda2 > 0
-            FWave::solve(4.5, 20.0, 2.5, 22.5,
+            fwave.solve(4.5, 20.0, 2.5, 22.5,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
@@ -98,7 +101,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[SupersonicRight] Wave Speed Right", waveSpeedRight, 12.24950641851166448956, TOLERANCE);
             
             // SupersonicLeft: Lambda1, Lambda2 < 0
-            FWave::solve(7.5, -27.3, 1.4, -25.2,
+            fwave.solve(7.5, -27.3, 1.4, -25.2,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
@@ -111,7 +114,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[SupersonicLeft] Wave Speed Right", waveSpeedRight, 0, TOLERANCE);
             
             // Steady state
-            FWave::solve(12.0, 14.0, 12.0, 14.0,
+            fwave.solve(12.0, 14.0, 12.0, 14.0,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
@@ -125,8 +128,8 @@ class FWaveTest : public CxxTest::TestSuite {
             
             // Lambda1 = 0, Lambda2 > 0
             double h = 5.0;
-            double hu = h * sqrt(FWave::GRAVITY * h);
-            FWave::solve(h, hu, h, hu,
+            double hu = h * sqrt(fwave.gravity * h);
+            fwave.solve(h, hu, h, hu,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
@@ -144,7 +147,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // in case h is zero (which can happen)
             
             // Height = 0
-            FWave::solve(0.0, 0.0, 5.0, 2.5,
+            fwave.solve(0.0, 0.0, 5.0, 2.5,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
