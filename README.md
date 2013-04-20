@@ -8,6 +8,26 @@
 * [CxxTest](http://cxxtest.com) (for tests)
 * [Doxygen](http://doxygen.org) (for documentation)
 
+## Build Options
+
+Build options can be supplied using 
+
+    scons <command> [name=value [name=value] [...]]
+
+Available options are
+
+* `debug=1`: Use debug option `-g` (off by default)
+* `optimize=<level>`: Use optimization level `-O<level>` (0 by default)
+* `compiler=<name>`: Use different compiler, e.g. *clang* for LLVM/Clang
+
+## Build
+
+The default build command
+
+    scons
+    
+will build the unit tests but not run it, useful for debugging propuses
+
 ## Tests
 
 Tests can be run using
