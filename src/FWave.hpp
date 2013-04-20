@@ -19,6 +19,16 @@ class FWave {
          */
         double tolerance;
         
+       /**
+        * Computes eigenvalues used in wave decomposition
+        *
+        * @param[in]   h_l         Left water height
+        * @param[in]   hu_l        Left momentum
+        * @param[in]   h_r         Right water height
+        * @param[in]   hu_r        Right momentum
+        * @param[out]  lambda_1    First eigenvalue
+        * @param[out]  lambda_2    Second eigenvalue
+        */
         void computeEigenvalues(double h_l, double hu_l, double h_r, double hu_r, double &lambda_1, double &lambda_2) {
             double velocity = computeParticleVelocity(h_l, hu_l, h_r, hu_r);
             double height = sqrt( gravity * computeHeight(h_l, h_r) );
@@ -26,10 +36,26 @@ class FWave {
             lambda_2 = velocity + height;
         }
         
+       /**
+        * Computes particle velocity used in eigenvalue computation
+        *
+        * @param[in]   h_l         Left water height
+        * @param[in]   hu_l        Left momentum
+        * @param[in]   h_r         Right water height
+        * @param[in]   hu_r        Right momentum
+        * @return                  Particle velocity
+        */
         static double computeParticleVelocity( double h_l, double hu_l, double h_r, double hu_r) {
             return ( hu_l / sqrt(h_l) + ( hu_r / sqrt(h_r) ) ) / ( sqrt(h_l) + sqrt(h_r) );
         }
         
+       /**
+        * Computes water height used in eigenvalue computation
+        *
+        * @param[in]   h_l         Left water height
+        * @param[in]   h_r         Right water height
+        * @return                  Water height
+        */
         static double computeHeight(double h_l, double h_r) {
             return 0.5 * ( h_l + h_r );
         }
