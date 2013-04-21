@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 namespace solver {
     /**
@@ -326,9 +327,9 @@ namespace solver {
                     waveSpeedLeft = lambda_1;
                     waveSpeedRight = lambda_2;
                 }
-             
-                // TODO: set maxWaveSpeed correctly
-         
+                
+                maxWaveSpeed = std::max(std::fabs(waveSpeedLeft), std::fabs(waveSpeedRight));
+                
                 /**
                  * **Compute net updates**
                  *
