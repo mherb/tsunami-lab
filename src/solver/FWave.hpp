@@ -8,77 +8,77 @@ namespace solver {
     /**
      * fWave solver
      */
-    class FWave {
+    template <typename T> class FWave {
         private:
             /**
              * Gravity in m/s^2
              */
-            double gravity;
+            T gravity;
          
             /**
              * Numerical tolerance for comparisons
              */
-            double tolerance;
+            T tolerance;
          
             /**
              * Left-side water height
              */
-            double h_l;
+            T h_l;
          
             /**
              * Right-side water height
              */
-            double h_r;
+            T h_r;
          
             /**
              * Left-side particle velocity
              */
-            double u_l;
+            T u_l;
          
             /**
              * Right-side particle velocity
              */
-            double u_r;
+            T u_r;
          
             /**
              * Left-side momentum
              */
-            double hu_l;
+            T hu_l;
          
             /**
              * Right-side momentum
              */
-            double hu_r;
+            T hu_r;
          
             /**
              * First Roe eigenvalue
              */
-            double lambda_1;
+            T lambda_1;
          
             /**
              * Second Roe eigenvalue
              */
-            double lambda_2;
+            T lambda_2;
          
             /**
              * First component of flux jump
              */
-            double delta_f_1;
+            T delta_f_1;
          
             /**
              * Second component of flux jump
              */
-            double delta_f_2;
+            T delta_f_2;
          
             /**
              * First eigencoefficient in wave decomposition corresponding to first eigenvalue
              */
-            double alpha_1;
+            T alpha_1;
          
             /**
              * Second eigencoefficient in wave decomposition corresponding to second eigenvalue
              */
-            double alpha_2;
+            T alpha_2;
          
             /**
              * Store input parameters as instance variables
@@ -88,7 +88,7 @@ namespace solver {
              * @param[in] hu_l  Left-side momentum
              * @param[in] hu_r  Right-side momentum
              */
-            void storeParameters(double h_l, double h_r, double hu_l, double hu_r) {
+            void storeParameters(T h_l, T h_r, T hu_l, T hu_r) {
                 this->h_l = h_l;
                 this->h_r = h_r;
                 this->hu_l = hu_l;
@@ -109,8 +109,8 @@ namespace solver {
             * Compute eigenvalues used in wave decomposition and store in instance variables
             */
             void computeEigenvalues() {
-                double velocity = computeParticleVelocity(h_l, h_r, u_l, u_r, hu_l, hu_r);
-                double height = sqrt( gravity * computeHeight(h_l, h_r) );
+                T velocity = computeParticleVelocity(h_l, h_r, u_l, u_r, hu_l, hu_r);
+                T height = sqrt( gravity * computeHeight(h_l, h_r) );
                 lambda_1 = velocity - height;
                 lambda_2 = velocity + height;
             }
@@ -126,7 +126,7 @@ namespace solver {
             * @param[in]   hu_r        Right-side momentum
             * @return                  Particle velocity
             */
-            static double computeParticleVelocity( double h_l, double h_r, double u_l, double u_r, double hu_l, double hu_r) {
+            static T computeParticleVelocity( T h_l, T h_r, T u_l, T u_r, T hu_l, T hu_r) {
                 return ( u_l * sqrt(h_l) + u_r * sqrt(h_r) ) / ( sqrt(h_l) + sqrt(h_r) );
             }
          
@@ -137,7 +137,7 @@ namespace solver {
             * @param[in]   h_r         Right water height
             * @return                  Water height
             */
-            static double computeHeight(double h_l, double h_r) {
+            static T computeHeight(T h_l, T h_r) {
                 return 0.5 * ( h_l + h_r );
             }
               
@@ -238,7 +238,7 @@ namespace solver {
              
                 computeFluxJump();
              
-                double lambda_diff = lambda_2 - lambda_1;
+                T lambda_diff = lambda_2 - lambda_1;
                 assert(lambda_diff > tolerance || lambda_diff < -tolerance); // lambda_diff must not be zero
              
                 alpha_1 = (lambda_2 * delta_f_1 - delta_f_2) / lambda_diff;
@@ -251,7 +251,7 @@ namespace solver {
              * @param[in]   _gravity            Gravity constant in m/s^2
              * @param[in]   _tolerance          Numerical tolerance
              */
-            FWave(double _gravity = 9.81, double _tolerance = 1e-10):
+            FWave(T _gravity = 9.81, T _tolerance = 1e-10):
                 gravity(_gravity), tolerance(_tolerance) {}
          
             /**
@@ -270,17 +270,17 @@ namespace solver {
              * @param[out]  maxWaveSpeed        Maximum wave speed
              */
             void computeNetUpdates(
-                double h_l,
-                double h_r,
-                double hu_l,
-                double hu_r,
-                double b_l,
-                double b_r,
-                double &netUpdateLeft_h,
-                double &netUpdateRight_h,
-                double &netUpdateLeft_hu,
-                double &netUpdateRight_hu,
-                double &maxWaveSpeed
+                T h_l,
+                T h_r,
+                T hu_l,
+                T hu_r,
+                T b_l,
+                T b_r,
+                T &netUpdateLeft_h,
+                T &netUpdateRight_h,
+                T &netUpdateLeft_hu,
+                T &netUpdateRight_hu,
+                T &maxWaveSpeed
             ) {
                 // Height cannot be negative
                 assert(h_l >= 0);
@@ -297,8 +297,8 @@ namespace solver {
                 netUpdateLeft_hu = 0.0;
                 netUpdateRight_h = 0.0;
                 netUpdateRight_hu = 0.0;
-                double waveSpeedLeft = 0.0;
-                double waveSpeedRight = 0.0;
+                T waveSpeedLeft = 0.0;
+                T waveSpeedRight = 0.0;
          
                 /**
                  * **Compute Wavespeeds**

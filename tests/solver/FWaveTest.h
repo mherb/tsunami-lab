@@ -8,14 +8,16 @@
 #define protected public
 #include <solver/FWave.hpp>
 
+typedef double T;
+
 class FWaveTest : public CxxTest::TestSuite {
     private:
         /**
          * Numerical tolerance for assertions
          */
-        const static double TOLERANCE = 1e-10;
+        const static T TOLERANCE = 1e-10;
         
-        solver::FWave fwave;
+        solver::FWave<T> fwave;
         
     public:
         
@@ -88,10 +90,10 @@ class FWaveTest : public CxxTest::TestSuite {
         }
         
         void testComputeNetUpdates() {
-            double netUpdateLeft_h, netUpdateLeft_hu;
-            double netUpdateRight_h, netUpdateRight_hu;
-            double waveSpeedLeft, waveSpeedRight;
-            double maxWaveSpeed;
+            T netUpdateLeft_h, netUpdateLeft_hu;
+            T netUpdateRight_h, netUpdateRight_hu;
+            T waveSpeedLeft, waveSpeedRight;
+            T maxWaveSpeed;
             
             // Regular: Lambda1 < 0, Lambda2 > 0
             fwave.computeNetUpdates(10.0, 12.5, 5.0, -3.5, 0.0, 0.0,
@@ -146,8 +148,8 @@ class FWaveTest : public CxxTest::TestSuite {
             // TSM_ASSERT_DELTA("[Steady] Wave Speed Right", waveSpeedRight, 12.0165514586817413307, TOLERANCE);
             
             // Lambda1 = 0, Lambda2 > 0
-            double h = 5.0;
-            double hu = h * sqrt(fwave.gravity * h);
+            T h = 5.0;
+            T hu = h * sqrt(fwave.gravity * h);
             fwave.computeNetUpdates(h, h, hu, hu, 0.0, 0.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
