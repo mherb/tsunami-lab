@@ -1,12 +1,12 @@
 
-#ifndef FWAVETEST_H
-#define FWAVETEST_H
+#ifndef SOLVER_FWAVETEST_H
+#define SOLVER_FWAVETEST_H
 
 #include <cxxtest/TestSuite.h>
 
 #define private public
 #define protected public
-#include <FWave.hpp>
+#include <solver/FWave.hpp>
 
 class FWaveTest : public CxxTest::TestSuite {
     private:
@@ -15,7 +15,7 @@ class FWaveTest : public CxxTest::TestSuite {
          */
         const static double TOLERANCE = 1e-10;
         
-        FWave fwave;
+        solver::FWave fwave;
         
     public:
         
