@@ -87,90 +87,91 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("Second eigencoefficient", fwave.alpha_2, -7.14145232945393453707, TOLERANCE);
         }
         
-        void testSolve() {
+        void testComputeNetUpdates() {
             double netUpdateLeft_h, netUpdateLeft_hu;
             double netUpdateRight_h, netUpdateRight_hu;
             double waveSpeedLeft, waveSpeedRight;
+            double maxWaveSpeed;
             
             // Regular: Lambda1 < 0, Lambda2 > 0
-            fwave.solve(10.0, 5.0, 12.5, -3.5,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(10.0, 12.5, 5.0, -3.5, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[Regular] Net Update Left Height", netUpdateLeft_h, -17.34505918808096570196, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Net Update Left Momentum", netUpdateLeft_hu, 180.68503796971846054652, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Net Update Right Height", netUpdateRight_h, 8.84505918808096570196, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Net Update Right Momentum", netUpdateRight_hu, 93.70121203028153945348, TOLERANCE);
-            TSM_ASSERT_DELTA("[Regular] Wave Speed Left", waveSpeedLeft, -10.41708973203620488931, TOLERANCE);
-            TSM_ASSERT_DELTA("[Regular] Wave Speed Right", waveSpeedRight, 10.59362182183554874211, TOLERANCE);
+            // TSM_ASSERT_DELTA("[Regular] Wave Speed Left", waveSpeedLeft, -10.41708973203620488931, TOLERANCE);
+            // TSM_ASSERT_DELTA("[Regular] Wave Speed Right", waveSpeedRight, 10.59362182183554874211, TOLERANCE);
             
             // SupersonicRight: Lambda1, Lambda2 > 0
-            fwave.solve(4.5, 20.0, 2.5, 22.5,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(4.5, 2.5, 20.0, 22.5, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[SupersonicRight] Net Update Left Height", netUpdateLeft_h, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicRight] Net Update Left Momentum", netUpdateLeft_hu, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicRight] Net Update Right Height", netUpdateRight_h, 2.5, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicRight] Net Update Right Momentum", netUpdateRight_hu, 44.94111111111111111111, TOLERANCE);
-            TSM_ASSERT_DELTA("[SupersonicRight] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[SupersonicRight] Wave Speed Right", waveSpeedRight, 12.24950641851166448956, TOLERANCE);
+            // TSM_ASSERT_DELTA("[SupersonicRight] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
+            // TSM_ASSERT_DELTA("[SupersonicRight] Wave Speed Right", waveSpeedRight, 12.24950641851166448956, TOLERANCE);
             
             // SupersonicLeft: Lambda1, Lambda2 < 0
-            fwave.solve(7.5, -27.3, 1.4, -25.2,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(7.5, 1.4, -27.3, -25.2, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[SupersonicLeft] Net Update Left Height", netUpdateLeft_h, 2.1, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicLeft] Net Update Left Momentum", netUpdateLeft_hu, 87.93555, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicLeft] Net Update Right Height", netUpdateRight_h, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicLeft] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[SupersonicLeft] Wave Speed Left", waveSpeedLeft, -14.57956803440405980804, TOLERANCE);
-            TSM_ASSERT_DELTA("[SupersonicLeft] Wave Speed Right", waveSpeedRight, 0, TOLERANCE);
+            // TSM_ASSERT_DELTA("[SupersonicLeft] Wave Speed Left", waveSpeedLeft, -14.57956803440405980804, TOLERANCE);
+            // TSM_ASSERT_DELTA("[SupersonicLeft] Wave Speed Right", waveSpeedRight, 0, TOLERANCE);
             
             // Steady state
-            fwave.solve(12.0, 14.0, 12.0, 14.0,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(12.0, 12.0, 14.0, 14.0, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[Steady] Net Update Left Height", netUpdateLeft_h, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Steady] Net Update Left Momentum", netUpdateLeft_hu, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Steady] Net Update Right Height", netUpdateRight_h, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Steady] Net Update Right Momentum", netUpdateRight_hu, 0.0, TOLERANCE);
-            TSM_ASSERT_DELTA("[Steady] Wave Speed Left", waveSpeedLeft, -9.68321812534840799736, TOLERANCE);
-            TSM_ASSERT_DELTA("[Steady] Wave Speed Right", waveSpeedRight, 12.0165514586817413307, TOLERANCE);
+            // TSM_ASSERT_DELTA("[Steady] Wave Speed Left", waveSpeedLeft, -9.68321812534840799736, TOLERANCE);
+            // TSM_ASSERT_DELTA("[Steady] Wave Speed Right", waveSpeedRight, 12.0165514586817413307, TOLERANCE);
             
             // Lambda1 = 0, Lambda2 > 0
             double h = 5.0;
             double hu = h * sqrt(fwave.gravity * h);
-            fwave.solve(h, hu, h, hu,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(h, h, hu, hu, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[LambdaZero] Net Update Left Height", netUpdateLeft_h, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[LambdaZero] Net Update Left Momentum", netUpdateLeft_hu, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[LambdaZero] Net Update Right Height", netUpdateRight_h, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[LambdaZero] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Right", waveSpeedRight, 14.00714103591450242095, TOLERANCE);
+            // TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
+            // TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Right", waveSpeedRight, 14.00714103591450242095, TOLERANCE);
             
             // Height = 0
-            fwave.solve(0.0, 0.0, 5.0, 2.5,
-                    netUpdateLeft_h, netUpdateLeft_hu,
-                    netUpdateRight_h, netUpdateRight_hu,
-                    waveSpeedLeft, waveSpeedRight
+            fwave.computeNetUpdates(0.0, 5.0, 0.0, 2.5, 0.0, 0.0,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    maxWaveSpeed
                 );
             TSM_ASSERT_DELTA("[ZeroHeight] Net Update Left Height", netUpdateLeft_h, -11.13068051441438335285, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeight] Net Update Left Momentum", netUpdateLeft_hu, 49.55681948558561664715, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeight] Net Update Right Height", netUpdateRight_h, 13.63068051441438335285, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeight] Net Update Right Momentum", netUpdateRight_hu, 74.31818051441438335285, TOLERANCE);
-            TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Left", waveSpeedLeft, -4.45227220576575334114, TOLERANCE);
-            TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Right", waveSpeedRight, 5.45227220576575334114, TOLERANCE);
+            // TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Left", waveSpeedLeft, -4.45227220576575334114, TOLERANCE);
+            // TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Right", waveSpeedRight, 5.45227220576575334114, TOLERANCE);
     }
 };
 

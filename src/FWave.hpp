@@ -254,36 +254,39 @@ class FWave {
             gravity(_gravity), tolerance(_tolerance) {}
         
         /**
-         * Compute net updates and resulting wavespeeds at an edge
+         * Compute net updates and maximum wavespeed at an edge
          *
-         * @param[in]   h_l                 Left water height
-         * @param[in]   hu_l                Left momentum
-         * @param[in]   h_r                 Right water height
-         * @param[in]   hu_r                Right momentum
+         * @param[in]   h_l                 Left-side water height
+         * @param[in]   h_r                 Right-side water height
+         * @param[in]   hu_l                Left-side momentum
+         * @param[in]   hu_r                Right-side momentum
+         * @param[in]   b_l                 Left-side bathymetry
+         * @param[in]   b_r                 Right-side bathymetry
          * @param[out]  netUpdateLeft_h     Left net update (water height)
-         * @param[out]  netUpdateLeft_hu    Left net update (momentum)
          * @param[out]  netUpdateRight_h    Right net update (water height)
+         * @param[out]  netUpdateLeft_hu    Left net update (momentum)
          * @param[out]  netUpdateRight_hu   Right net update (momentum)
-         * @param[out]  waveSpeedLeft       Left wave speed
-         * @param[out]  waveSpeedRight      Right wave speed
+         * @param[out]  maxWaveSpeed        Maximum wave speed
          */
-        void solve(
+        void computeNetUpdates(
             double h_l,
-            double hu_l,
             double h_r,
+            double hu_l,
             double hu_r,
+            double b_l,
+            double b_r,
             double &netUpdateLeft_h,
-            double &netUpdateLeft_hu,
             double &netUpdateRight_h,
+            double &netUpdateLeft_hu,
             double &netUpdateRight_hu,
-            double &waveSpeedLeft,
-            double &waveSpeedRight
+            double &maxWaveSpeed
         ) {
             // Height cannot be negative
             assert(h_l >= 0);
             assert(h_r >= 0);
             
             // Store params
+            // TODO: store and obey bathymetry
             storeParameters(h_l, h_r, hu_l, hu_r);
             
             computeEigenvalues();
@@ -293,8 +296,8 @@ class FWave {
             netUpdateLeft_hu = 0.0;
             netUpdateRight_h = 0.0;
             netUpdateRight_hu = 0.0;
-            waveSpeedLeft = 0.0;
-            waveSpeedRight = 0.0;
+            double waveSpeedLeft = 0.0;
+            double waveSpeedRight = 0.0;
         
             /**
              * **Compute Wavespeeds**
@@ -322,6 +325,8 @@ class FWave {
                 waveSpeedLeft = lambda_1;
                 waveSpeedRight = lambda_2;
             }
+            
+            // TODO: set maxWaveSpeed correctly
         
             /**
              * **Compute net updates**
