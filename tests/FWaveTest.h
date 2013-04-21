@@ -18,38 +18,57 @@ class FWaveTest : public CxxTest::TestSuite {
         FWave fwave;
         
     public:
+        
+        void testStoreParameters() {
+            fwave.storeParameters(16.0, 9.0, 24.0, -4.5);
+            TSM_ASSERT_DELTA("[Regular] Left water heigt", fwave.h_l, 16.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[Regular] Right water heigt", fwave.h_r, 9.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[Regular] Left velocity", fwave.u_l, 1.5, TOLERANCE);
+            TSM_ASSERT_DELTA("[Regular] Right velocity", fwave.u_r, -0.5, TOLERANCE);
+            TSM_ASSERT_DELTA("[Regular] Left momentum", fwave.hu_l, 24.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[Regular] Right momentum", fwave.hu_r, -4.5, TOLERANCE);
+            
+            fwave.storeParameters(0.0, 9.0, 0.0, -4.5);
+            TSM_ASSERT_DELTA("[ZeroHeight] Left water heigt", fwave.h_l, 0.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Right water heigt", fwave.h_r, 9.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Left velocity", fwave.u_l, 0, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Right velocity", fwave.u_r, -0.5, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Left momentum", fwave.hu_l, 0.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Right momentum", fwave.hu_r, -4.5, TOLERANCE);
+        }
+        
         void testParticleVelocity() {
             // h_l = 16
             // u_l = 1.5
             // h_r = 9
             // u_r = -0.5
             TS_ASSERT_DELTA(
-                fwave.computeParticleVelocity(16.0, 24.0, 9.0, -4.5),
+                fwave.computeParticleVelocity(16.0, 9.0, 1.5, -0.5, 24.0, -4.5),
                 0.6428571428571428571,
                 TOLERANCE
             );
         }
-
+        
         void testComputeFluxJump() {
-            double delta_f_1, delta_f_2;
-            
             // h_l = 16
             // hu_l = 24
             // h_r = 9
             // hu_r = -4.5
-            fwave.computeFluxJump(16.0, 24.0, 9.0, -4.5, delta_f_1, delta_f_2);
+            fwave.storeParameters(16.0, 9.0, 24.0, -4.5);
+            fwave.computeFluxJump();
         
-            TSM_ASSERT_DELTA("First component", delta_f_1, -28.5, TOLERANCE);
-            TSM_ASSERT_DELTA("Second component", delta_f_2, -892.125, TOLERANCE);
+            TSM_ASSERT_DELTA("First component", fwave.delta_f_1, -28.5, TOLERANCE);
+            TSM_ASSERT_DELTA("Second component", fwave.delta_f_2, -892.125, TOLERANCE);
         
             // h_l = 12
             // hu_l = -15
             // h_r = 6
             // hu_r = 5.5
-            fwave.computeFluxJump(12.0, -15.0, 6.0, 5.5, delta_f_1, delta_f_2);
+            fwave.storeParameters(12.0, 6.0, -15.0, 5.5);
+            fwave.computeFluxJump();
         
-            TSM_ASSERT_DELTA("First component", delta_f_1, 20.5, TOLERANCE);
-            TSM_ASSERT_DELTA("Second component", delta_f_2, -543.44833333333333333333, TOLERANCE);
+            TSM_ASSERT_DELTA("First component", fwave.delta_f_1, 20.5, TOLERANCE);
+            TSM_ASSERT_DELTA("Second component", fwave.delta_f_2, -543.44833333333333333333, TOLERANCE);
         }
         
         void testComputeEigencoefficients() {
@@ -58,15 +77,14 @@ class FWaveTest : public CxxTest::TestSuite {
             // h_r = 6.5
             // hu_r = -3.5
             
-            double lambda_1, lambda_2;
-            double alpha_1, alpha_2;
-            lambda_1 = -7.04318942880952746985;
-            lambda_2 = 8.61727033455629779978;
+            fwave.storeParameters(6.0, 6.5, 13.0, -3.5);
+            fwave.lambda_1 = -7.04318942880952746985;
+            fwave.lambda_2 = 8.61727033455629779978;
             
-            fwave.computeEigencoefficients(6.0, 13.0, 6.5, -3.5, lambda_1, lambda_2, alpha_1, alpha_2);
+            fwave.computeEigencoefficients();
             
-            TSM_ASSERT_DELTA("First eigencoefficient", alpha_1, -9.35854767054606546293, TOLERANCE);
-            TSM_ASSERT_DELTA("Second eigencoefficient", alpha_2, -7.14145232945393453707, TOLERANCE);
+            TSM_ASSERT_DELTA("First eigencoefficient", fwave.alpha_1, -9.35854767054606546293, TOLERANCE);
+            TSM_ASSERT_DELTA("Second eigencoefficient", fwave.alpha_2, -7.14145232945393453707, TOLERANCE);
         }
         
         void testSolve() {
@@ -141,24 +159,18 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Right", waveSpeedRight, 14.00714103591450242095, TOLERANCE);
             
-            /*
-            // TODO: test fails due to unmet assertion
-            // we should not do hu/h to get h because that leads to a NaN
-            // in case h is zero (which can happen)
-            
             // Height = 0
             fwave.solve(0.0, 0.0, 5.0, 2.5,
                     netUpdateLeft_h, netUpdateLeft_hu,
                     netUpdateRight_h, netUpdateRight_hu,
                     waveSpeedLeft, waveSpeedRight
                 );
-            TSM_ASSERT_DELTA("[LambdaZero] Net Update Left Height", netUpdateLeft_h, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Net Update Left Momentum", netUpdateLeft_hu, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Net Update Right Height", netUpdateRight_h, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Left", waveSpeedLeft, 0, TOLERANCE);
-            TSM_ASSERT_DELTA("[LambdaZero] Wave Speed Right", waveSpeedRight, 0, TOLERANCE);
-            */
+            TSM_ASSERT_DELTA("[ZeroHeight] Net Update Left Height", netUpdateLeft_h, -11.13068051441438335285, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Net Update Left Momentum", netUpdateLeft_hu, 49.55681948558561664715, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Net Update Right Height", netUpdateRight_h, 13.63068051441438335285, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Net Update Right Momentum", netUpdateRight_hu, 74.31818051441438335285, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Left", waveSpeedLeft, -4.45227220576575334114, TOLERANCE);
+            TSM_ASSERT_DELTA("[ZeroHeight] Wave Speed Right", waveSpeedRight, 5.45227220576575334114, TOLERANCE);
     }
 };
 

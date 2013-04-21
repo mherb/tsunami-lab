@@ -19,34 +19,114 @@ class FWave {
          */
         double tolerance;
         
+        /**
+         * Left-side water height
+         */
+        double h_l;
+        
+        /**
+         * Right-side water height
+         */
+        double h_r;
+        
+        /**
+         * Left-side particle velocity
+         */
+        double u_l;
+        
+        /**
+         * Right-side particle velocity
+         */
+        double u_r;
+        
+        /**
+         * Left-side momentum
+         */
+        double hu_l;
+        
+        /**
+         * Right-side momentum
+         */
+        double hu_r;
+        
+        /**
+         * First Roe eigenvalue
+         */
+        double lambda_1;
+        
+        /**
+         * Second Roe eigenvalue
+         */
+        double lambda_2;
+        
+        /**
+         * First component of flux jump
+         */
+        double delta_f_1;
+        
+        /**
+         * Second component of flux jump
+         */
+        double delta_f_2;
+        
+        /**
+         * First eigencoefficient in wave decomposition corresponding to first eigenvalue
+         */
+        double alpha_1;
+        
+        /**
+         * Second eigencoefficient in wave decomposition corresponding to second eigenvalue
+         */
+        double alpha_2;
+        
+        /**
+         * Store input parameters as instance variables
+         * 
+         * @param[in] h_l   Left-side water height
+         * @param[in] h_r   Right-side water height
+         * @param[in] hu_l  Left-side momentum
+         * @param[in] hu_r  Right-side momentum
+         */
+        void storeParameters(double h_l, double h_r, double hu_l, double hu_r) {
+            this->h_l = h_l;
+            this->h_r = h_r;
+            this->hu_l = hu_l;
+            this->hu_r = hu_r;
+            
+            if(h_l > tolerance)
+                this->u_l = hu_l / h_l;
+            else
+                this->u_l = 0.0;
+            
+            if(h_r > tolerance)
+                this->u_r = hu_r / h_r;
+            else
+                this->u_r = 0.0;
+        }
+        
        /**
-        * Computes eigenvalues used in wave decomposition
-        *
-        * @param[in]   h_l         Left water height
-        * @param[in]   hu_l        Left momentum
-        * @param[in]   h_r         Right water height
-        * @param[in]   hu_r        Right momentum
-        * @param[out]  lambda_1    First eigenvalue
-        * @param[out]  lambda_2    Second eigenvalue
+        * Compute eigenvalues used in wave decomposition and store in instance variables
         */
-        void computeEigenvalues(double h_l, double hu_l, double h_r, double hu_r, double &lambda_1, double &lambda_2) {
-            double velocity = computeParticleVelocity(h_l, hu_l, h_r, hu_r);
+        void computeEigenvalues() {
+            double velocity = computeParticleVelocity(h_l, h_r, u_l, u_r, hu_l, hu_r);
             double height = sqrt( gravity * computeHeight(h_l, h_r) );
             lambda_1 = velocity - height;
             lambda_2 = velocity + height;
         }
         
        /**
-        * Computes particle velocity used in eigenvalue computation
+        * Compute particle velocity used in eigenvalue computation
         *
-        * @param[in]   h_l         Left water height
-        * @param[in]   hu_l        Left momentum
-        * @param[in]   h_r         Right water height
-        * @param[in]   hu_r        Right momentum
+        * @param[in]   h_l         Left-side water height
+        * @param[in]   h_r         Right-side water height
+        * @param[in]   u_l         Left-side velocity
+        * @param[in]   u_r         Right-side velocity
+        * @param[in]   hu_l        Left-side momentum
+        * @param[in]   hu_r        Right-side momentum
         * @return                  Particle velocity
         */
-        static double computeParticleVelocity( double h_l, double hu_l, double h_r, double hu_r) {
-            return ( hu_l / sqrt(h_l) + ( hu_r / sqrt(h_r) ) ) / ( sqrt(h_l) + sqrt(h_r) );
+        static double computeParticleVelocity( double h_l, double h_r, double u_l, double u_r, double hu_l, double hu_r) {
+            return ( u_l * sqrt(h_l) + u_r * sqrt(h_r) ) / ( sqrt(h_l) + sqrt(h_r) );
         }
         
        /**
@@ -61,23 +141,10 @@ class FWave {
         }
              
         /**
-         * Computes the flux jump as a function of left and right water height and momentum.
-         *
-         * @param[in]   h_l         Left water height
-         * @param[in]   hu_l        Left momentum
-         * @param[in]   h_r         Right water height
-         * @param[in]   hu_r        Right momentum
-         * @param[out]  delta_f_1   First component of flux jump
-         * @param[out]  delta_f_2   Second component of flux jump
+         * Compute the flux jump as a function of left and right water height and momentum.
+         * Results are stored in instance variables delta_f_1 and delta_f_2
          */
-        void computeFluxJump(
-            double h_l,
-            double hu_l,
-            double h_r,
-            double hu_r,
-            double &delta_f_1,
-            double &delta_f_2
-        ) {
+        void computeFluxJump() {
            /**
             * **Compute flux jump**
             * 
@@ -107,90 +174,72 @@ class FWave {
             * where \f$g\f$ denotes the gravity constant.
             */
             delta_f_1 = hu_r - hu_l;
-            delta_f_2 = (hu_r * (hu_r / h_r)) - (hu_l * (hu_l / h_l)) + 0.5 * gravity * (h_r*h_r - h_l*h_l);
+            delta_f_2 = (hu_r * u_r) - (hu_l * u_l) + 0.5 * gravity * (h_r*h_r - h_l*h_l);
         }
         
         /**
-         * Computes the eigencoefficients needed to compute the resulting waves
-         *
-         * @param[in]   h_l         Left water height
-         * @param[in]   hu_l        Left momentum
-         * @param[in]   h_r         Right water height
-         * @param[in]   hu_r        Right momentum
-         * @param[in]   lambda_1    First eigenvalue
-         * @param[in]   lambda_2    Second eigenvalue
-         * @param[out]  alpha_1     First eigencoefficient
-         * @param[out]  alpha_2     Second eigencoefficient
+         * Compute the eigencoefficients needed to compute the resulting waves.
+         * Results are stored in instance variables alpha_1 and alpha_2
          */
-        void computeEigencoefficients(
-            double h_l,
-            double hu_l,
-            double h_r,
-            double hu_r,
-            double lambda_1,
-            double lambda_2,
-            double &alpha_1,
-            double &alpha_2
-        ) {
-           /**
-            * **Compute Eigencoefficients**
-            * \f[
-            * \begin{bmatrix}
-            *     \alpha_1 \\
-            *     \alpha_2
-            * \end{bmatrix} =
-            * R^{-1} \cdot \Delta f
-            * \text{ with }
-            * R = \begin{bmatrix}
-            *     1 & 1 \\
-            *     \lambda_1 & \lambda_2
-            * \end{bmatrix},
-            * \Delta f = \begin{bmatrix}
-            *     \Delta f_1 \\
-            *     \Delta f_2
-            * \end{bmatrix}
-            * \f]
-            * 
-            * With 
-            * \f[
-            * R^{-1} = 
-            * \frac{1}{\lambda_2 - \lambda_1} \begin{bmatrix}
-            *     \lambda_2 & -1 \\
-            *     -\lambda_1 & 1
-            * \end{bmatrix}
-            * \f]
-            * we end up with
-            * \f{align*}{
-            * \begin{bmatrix}
-            *     \alpha_1 \\
-            *     \alpha_2
-            * \end{bmatrix}
-            * &= 
-            * \frac{1}{\lambda_2 - \lambda_1} \begin{bmatrix}
-            *     \lambda_2 & -1 \\
-            *     -\lambda_1 & 1
-            * \end{bmatrix}
-            * \cdot
-            * \begin{bmatrix}
-            *     \Delta f_1 \\
-            *     \Delta f_2
-            * \end{bmatrix}
-            * \\
-            * &=
-            * \frac{1}{\lambda_{\text{diff}}} \begin{bmatrix}
-            *     \lambda_2 \Delta f_1 - \Delta f_2 \\
-            *     -\lambda_1 \Delta f_1 + \Delta f_2
-            * \end{bmatrix},
-            * \qquad \lambda_{\text{diff}} = \lambda_2 - \lambda_1
-            * \f}
-            */
-         
-            double delta_f_1, delta_f_2;
-            computeFluxJump(h_l, hu_l, h_r, hu_r, delta_f_1, delta_f_2);
-        
+        void computeEigencoefficients() {
+            /**
+             * **Compute Eigencoefficients**
+             * \f[
+             * \begin{bmatrix}
+             *     \alpha_1 \\
+             *     \alpha_2
+             * \end{bmatrix} =
+             * R^{-1} \cdot \Delta f
+             * \text{ with }
+             * R = \begin{bmatrix}
+             *     1 & 1 \\
+             *     \lambda_1 & \lambda_2
+             * \end{bmatrix},
+             * \Delta f = \begin{bmatrix}
+             *     \Delta f_1 \\
+             *     \Delta f_2
+             * \end{bmatrix}
+             * \f]
+             * 
+             * With 
+             * \f[
+             * R^{-1} = 
+             * \frac{1}{\lambda_2 - \lambda_1} \begin{bmatrix}
+             *     \lambda_2 & -1 \\
+             *     -\lambda_1 & 1
+             * \end{bmatrix}
+             * \f]
+             * we end up with
+             * \f{align*}{
+             * \begin{bmatrix}
+             *     \alpha_1 \\
+             *     \alpha_2
+             * \end{bmatrix}
+             * &= 
+             * \frac{1}{\lambda_2 - \lambda_1} \begin{bmatrix}
+             *     \lambda_2 & -1 \\
+             *     -\lambda_1 & 1
+             * \end{bmatrix}
+             * \cdot
+             * \begin{bmatrix}
+             *     \Delta f_1 \\
+             *     \Delta f_2
+             * \end{bmatrix}
+             * \\
+             * &=
+             * \frac{1}{\lambda_{\text{diff}}} \begin{bmatrix}
+             *     \lambda_2 \Delta f_1 - \Delta f_2 \\
+             *     -\lambda_1 \Delta f_1 + \Delta f_2
+             * \end{bmatrix},
+             * \qquad \lambda_{\text{diff}} = \lambda_2 - \lambda_1
+             * \f}
+             */
+            
+            computeFluxJump();
+            
             double lambda_diff = lambda_2 - lambda_1;
             assert(lambda_diff > tolerance || lambda_diff < -tolerance); // lambda_diff must not be zero
-        
+            
             alpha_1 = (lambda_2 * delta_f_1 - delta_f_2) / lambda_diff;
             alpha_2 = (-lambda_1 * delta_f_1 + delta_f_2) / lambda_diff;
         }
@@ -203,7 +252,7 @@ class FWave {
          */
         FWave(double _gravity = 9.81, double _tolerance = 1e-10):
             gravity(_gravity), tolerance(_tolerance) {}
-       
+        
         /**
          * Compute net updates and resulting wavespeeds at an edge
          *
@@ -233,12 +282,13 @@ class FWave {
             // Height cannot be negative
             assert(h_l >= 0);
             assert(h_r >= 0);
-        
-            double lambda_1, lambda_2;
-            double alpha_1, alpha_2;
-            computeEigenvalues(h_l, hu_l, h_r, hu_r, lambda_1, lambda_2);
-            computeEigencoefficients(h_l, hu_l, h_r, hu_r, lambda_1, lambda_2, alpha_1, alpha_2);
-        
+            
+            // Store params
+            storeParameters(h_l, h_r, hu_l, hu_r);
+            
+            computeEigenvalues();
+            computeEigencoefficients();
+            
             netUpdateLeft_h = 0.0;
             netUpdateLeft_hu = 0.0;
             netUpdateRight_h = 0.0;
