@@ -328,7 +328,7 @@ namespace solver {
                     waveSpeedRight = lambda_2;
                 }
                 
-                maxWaveSpeed = std::max(std::fabs(waveSpeedLeft), std::fabs(waveSpeedRight));
+                maxWaveSpeed = std::max(std::fabs(lambda_1), std::fabs(lambda_2));
                 
                 /**
                  * **Compute net updates**
