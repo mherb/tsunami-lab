@@ -286,21 +286,26 @@ namespace solver {
                 // Height cannot be negative
                 assert(h_l >= 0);
                 assert(h_r >= 0);
-             
-                // Store params
-                // TODO: store and obey bathymetry
-                storeParameters(h_l, h_r, hu_l, hu_r);
-             
-                computeEigenvalues();
-                computeEigencoefficients();
-             
+                
+                // init values
                 netUpdateLeft_h = 0.0;
                 netUpdateLeft_hu = 0.0;
                 netUpdateRight_h = 0.0;
                 netUpdateRight_hu = 0.0;
-                T waveSpeedLeft = 0.0;
-                T waveSpeedRight = 0.0;
-         
+                maxWaveSpeed = 0.0;
+                
+                // handle edge case "both heights numerically zero"
+                // in that case, just return zero for everything
+                if(h_l < tolerance && h_r < tolerance)
+                    return;
+                
+                // Store params
+                // TODO: store and obey bathymetry
+                storeParameters(h_l, h_r, hu_l, hu_r);
+                
+                computeEigenvalues();
+                computeEigencoefficients();
+                
                 /**
                  * **Compute Wavespeeds**
                  *
@@ -313,6 +318,10 @@ namespace solver {
                  * \end{cases}
                  * \f]
                  */
+                /*
+                // Currently not used
+                T waveSpeedLeft = 0.0;
+                T waveSpeedRight = 0.0;
                 if(std::signbit(lambda_1) == std::signbit(lambda_2)) {
                     // same sign
                     if(std::signbit(lambda_1)) {
@@ -327,7 +336,13 @@ namespace solver {
                     waveSpeedLeft = lambda_1;
                     waveSpeedRight = lambda_2;
                 }
+                */
                 
+                /**
+                 * **Compute Maximum wavespeeds**
+                 *
+                 * \f[\lambda_{\text{max}} = \max\left\{ \left| \lambda_1 \right|, \left| \lambda_2 \right| \right\}\f]
+                 */
                 maxWaveSpeed = std::max(std::fabs(lambda_1), std::fabs(lambda_2));
                 
                 /**
