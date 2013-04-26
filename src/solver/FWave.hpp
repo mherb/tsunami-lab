@@ -111,9 +111,9 @@ namespace solver {
             */
             void computeEigenvalues() {
                 T velocity = computeParticleVelocity(h_l, h_r, u_l, u_r, hu_l, hu_r);
-                T height = sqrt( gravity * computeHeight(h_l, h_r) );
-                lambda_1 = velocity - height;
-                lambda_2 = velocity + height;
+                T phaseVelocity = sqrt( gravity * computeHeight(h_l, h_r) );
+                lambda_1 = velocity - phaseVelocity;
+                lambda_2 = velocity + phaseVelocity;
             }
          
            /**
