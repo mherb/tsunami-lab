@@ -50,6 +50,16 @@ namespace solver {
              * Right-side momentum
              */
             T hu_r;
+            
+            /**
+             * Left-side bathymetry
+             */
+            T b_l;
+         
+            /**
+             * Right-side bathymetry
+             */
+            T b_r;
          
             /**
              * First Roe eigenvalue
@@ -88,12 +98,17 @@ namespace solver {
              * @param[in] h_r   Right-side water height
              * @param[in] hu_l  Left-side momentum
              * @param[in] hu_r  Right-side momentum
+             * @param[in] hu_l  Left-side bathymetry
+             * @param[in] hu_r  Right-side bathymetry
              */
-            void storeParameters(T h_l, T h_r, T hu_l, T hu_r) {
+            void storeParameters(T h_l, T h_r, T hu_l, T hu_r, T b_l, T b_r) {
                 this->h_l = h_l;
                 this->h_r = h_r;
                 this->hu_l = hu_l;
                 this->hu_r = hu_r;
+                
+                this->b_l = b_l;
+                this->b_r = b_r;
              
                 if(h_l > tolerance)
                     this->u_l = hu_l / h_l;
@@ -150,22 +165,33 @@ namespace solver {
                /**
                 * **Compute flux jump**
                 * 
-                * \f{align*}{ \Delta f := f(q_r) - f(q_l)
+                * \f{align*}{ \Delta f := f(q_r) - f(q_l) - \Delta x \Psi_{i-1/2}
                 * &=
                 * \begin{bmatrix}
                 * hu_r \\
                 * hu^2_r + \frac{1}{2} g h_r
-                * \end{bmatrix}   
+                * \end{bmatrix}
                 * -
                 * \begin{bmatrix}
                 * hu_l \\
                 * hu^2_l + \frac{1}{2} g h_l
-                * \end{bmatrix} 
+                * \end{bmatrix}
+                * -
+                * \begin{bmatrix}
+                * 0 \\
+                * -g(b_r-b_l)\frac{h_l+h_r}{2}
+                * \end{bmatrix}
                 * \\
                 * &=
                 * \begin{bmatrix}
                 * hu_r - hu_l \\
-                * hu^2_r - hu^2_l + \frac{1}{2} g (h_r - h_l)
+                * hu^2_r - hu^2_l + \frac{1}{2} g (h_r^2 - h_l^2) + \frac{1}{2} g(b_r-b_l)(h_l+h_r)
+                * \end{bmatrix}
+                * \\
+                * &=
+                * \begin{bmatrix}
+                * hu_r - hu_l \\
+                * hu^2_r - hu^2_l + \frac{1}{2} g (h_r (h_r + b_r - b_l) + h_l (-h_l + b_r - b_l))
                 * \end{bmatrix}
                 * \\
                 * &=
@@ -175,10 +201,12 @@ namespace solver {
                 * \end{bmatrix}\f}
                 * where \f$g\f$ denotes the gravity constant.
                 */
+                
                 delta_f_1 = hu_r - hu_l;
-                delta_f_2 = (hu_r * u_r) - (hu_l * u_l) + 0.5 * gravity * (h_r*h_r - h_l*h_l);
+                delta_f_2 = (hu_r * u_r) - (hu_l * u_l)
+                    + 0.5 * gravity * (h_r * (h_r + b_r - b_l) + h_l * (-h_l + b_r - b_l));
             }
-         
+            
             /**
              * Compute the eigencoefficients needed to compute the resulting waves.
              * Results are stored in instance variables alpha_1 and alpha_2
@@ -300,8 +328,7 @@ namespace solver {
                     return;
                 
                 // Store params
-                // TODO: store and obey bathymetry
-                storeParameters(h_l, h_r, hu_l, hu_r);
+                storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
                 
                 computeEigenvalues();
                 computeEigencoefficients();

@@ -22,7 +22,7 @@ class FWaveTest : public CxxTest::TestSuite {
     public:
         
         void testStoreParameters() {
-            fwave.storeParameters(16.0, 9.0, 24.0, -4.5);
+            fwave.storeParameters(16.0, 9.0, 24.0, -4.5, 0.0, 0.0);
             TSM_ASSERT_DELTA("[Regular] Left water heigt", fwave.h_l, 16.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Right water heigt", fwave.h_r, 9.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Left velocity", fwave.u_l, 1.5, TOLERANCE);
@@ -30,7 +30,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[Regular] Left momentum", fwave.hu_l, 24.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Right momentum", fwave.hu_r, -4.5, TOLERANCE);
             
-            fwave.storeParameters(0.0, 9.0, 0.0, -4.5);
+            fwave.storeParameters(0.0, 9.0, 0.0, -4.5, 0.0, 0.0);
             TSM_ASSERT_DELTA("[ZeroHeight] Left water heigt", fwave.h_l, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeight] Right water heigt", fwave.h_r, 9.0, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeight] Left velocity", fwave.u_l, 0, TOLERANCE);
@@ -56,7 +56,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // hu_l = 24
             // h_r = 9
             // hu_r = -4.5
-            fwave.storeParameters(16.0, 9.0, 24.0, -4.5);
+            fwave.storeParameters(16.0, 9.0, 24.0, -4.5, 0.0, 0.0);
             fwave.computeFluxJump();
         
             TSM_ASSERT_DELTA("First component", fwave.delta_f_1, -28.5, TOLERANCE);
@@ -66,7 +66,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // hu_l = -15
             // h_r = 6
             // hu_r = 5.5
-            fwave.storeParameters(12.0, 6.0, -15.0, 5.5);
+            fwave.storeParameters(12.0, 6.0, -15.0, 5.5, 0.0, 0.0);
             fwave.computeFluxJump();
         
             TSM_ASSERT_DELTA("First component", fwave.delta_f_1, 20.5, TOLERANCE);
@@ -79,7 +79,7 @@ class FWaveTest : public CxxTest::TestSuite {
             // h_r = 6.5
             // hu_r = -3.5
             
-            fwave.storeParameters(6.0, 6.5, 13.0, -3.5);
+            fwave.storeParameters(6.0, 6.5, 13.0, -3.5, 0.0, 0.0);
             fwave.lambda_1 = -7.04318942880952746985;
             fwave.lambda_2 = 8.61727033455629779978;
             
