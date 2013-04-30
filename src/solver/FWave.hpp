@@ -125,38 +125,12 @@ namespace solver {
             * Compute eigenvalues used in wave decomposition and store in instance variables
             */
             void computeEigenvalues() {
-                T velocity = computeParticleVelocity(h_l, h_r, u_l, u_r, hu_l, hu_r);
-                T phaseVelocity = sqrt( gravity * computeHeight(h_l, h_r) );
+                T velocity = ( u_l * sqrt(h_l) + u_r * sqrt(h_r) ) / ( sqrt(h_l) + sqrt(h_r) );
+                T phaseVelocity = sqrt( 0.5 * gravity * ( h_l + h_r ) );
                 lambda_1 = velocity - phaseVelocity;
                 lambda_2 = velocity + phaseVelocity;
             }
-         
-           /**
-            * Compute particle velocity used in eigenvalue computation
-            *
-            * @param[in]   h_l         Left-side water height
-            * @param[in]   h_r         Right-side water height
-            * @param[in]   u_l         Left-side velocity
-            * @param[in]   u_r         Right-side velocity
-            * @param[in]   hu_l        Left-side momentum
-            * @param[in]   hu_r        Right-side momentum
-            * @return                  Particle velocity
-            */
-            static T computeParticleVelocity( T h_l, T h_r, T u_l, T u_r, T hu_l, T hu_r) {
-                return ( u_l * sqrt(h_l) + u_r * sqrt(h_r) ) / ( sqrt(h_l) + sqrt(h_r) );
-            }
-         
-           /**
-            * Computes water height used in eigenvalue computation
-            *
-            * @param[in]   h_l         Left water height
-            * @param[in]   h_r         Right water height
-            * @return                  Water height
-            */
-            static T computeHeight(T h_l, T h_r) {
-                return 0.5 * ( h_l + h_r );
-            }
-              
+            
             /**
              * Compute the flux jump as a function of left and right water height and momentum.
              * Results are stored in instance variables delta_f_1 and delta_f_2

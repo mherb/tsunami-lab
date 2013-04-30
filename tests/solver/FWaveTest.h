@@ -39,18 +39,6 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[ZeroHeight] Right momentum", fwave.hu_r, -4.5, TOLERANCE);
         }
         
-        void testParticleVelocity() {
-            // h_l = 16
-            // u_l = 1.5
-            // h_r = 9
-            // u_r = -0.5
-            TS_ASSERT_DELTA(
-                fwave.computeParticleVelocity(16.0, 9.0, 1.5, -0.5, 24.0, -4.5),
-                0.6428571428571428571,
-                TOLERANCE
-            );
-        }
-        
         void testComputeFluxJump() {
             // h_l = 16
             // hu_l = 24
