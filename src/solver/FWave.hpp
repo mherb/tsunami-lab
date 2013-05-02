@@ -295,11 +295,33 @@ namespace solver {
                 netUpdateRight_h = 0.0;
                 netUpdateRight_hu = 0.0;
                 maxWaveSpeed = 0.0;
-                
+                                
                 // handle edge case "both heights numerically zero"
                 // in that case, just return zero for everything
                 if(h_l < tolerance && h_r < tolerance)
                     return;
+                
+                // Check for dry-wet / wet-dry cases
+                // Handle bathymetry edge-cases (wet-dry / dry-wet)
+                if(b_l >= -tolerance && b_r >= -tolerance) {
+                    // left and right cell are both dry
+                    // nothing to do here
+                    return;
+                } if(b_l >= -tolerance) {
+                    // left one is a dry cell
+                    // left cell should be the same height and bathymetry
+                    // but opposite momentum
+                    h_l = h_r;
+                    hu_l = -hu_r;
+                    b_l = b_r;
+                } else if(b_r >= -tolerance) {
+                    // right one is a dry cell
+                    // right cell should be the same height and bathymetry
+                    // but opposite momentum
+                    h_r = h_l;
+                    hu_r = -hu_l;
+                    b_r = b_l;
+                }
                 
                 // Store params
                 storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
