@@ -360,36 +360,24 @@ namespace solver {
                  * \begin{bmatrix} \Delta h_r \\ \Delta hu_r \end{bmatrix} \\
                  * \f}
                  */
-                if(lambda_1 > tolerance) {
-                    // to right
-                    netUpdateRight_h += alpha_1;
-                    netUpdateRight_hu += alpha_1 * lambda_1;
-                } else if(lambda_1 < -tolerance) {
+                if(lambda_1 < 0.0) {
                     // to left
                     netUpdateLeft_h += alpha_1;
                     netUpdateLeft_hu += alpha_1 * lambda_1;
                 } else {
-                    // TODO: Fix behavior
-                    // lambda is (numerically) zero, which implies hu is zero
-                    // however, alpha may be not be zero, so we need to handle that case
-                    // in some sensible way
-                    assert(alpha_1 < tolerance && alpha_1 > -tolerance);
+                    // to right
+                    netUpdateRight_h += alpha_1;
+                    netUpdateRight_hu += alpha_1 * lambda_1;
                 }
          
-                if(lambda_2 > tolerance) {
+                if(lambda_2 >= 0.0) {
                     // to right
                     netUpdateRight_h += alpha_2;
                     netUpdateRight_hu += alpha_2 * lambda_2;
-                } else if(lambda_2 < -tolerance) {
+                } else {
                     // to left
                     netUpdateLeft_h += alpha_2;
                     netUpdateLeft_hu += alpha_2 * lambda_2;
-                } else {
-                    // TODO: Fix behavior
-                    // lambda is (numerically) zero, which implies hu is zero
-                    // however, alpha may be not be zero, so we need to handle that case
-                    // in some sensible way
-                    assert(alpha_2 < tolerance && alpha_2 > -tolerance);
                 }
             }
     };
