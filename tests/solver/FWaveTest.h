@@ -10,6 +10,9 @@
 
 typedef double T;
 
+/**
+ * Unit Testing class for FWave
+ */
 class FWaveTest : public CxxTest::TestSuite {
     private:
         /**
@@ -21,6 +24,9 @@ class FWaveTest : public CxxTest::TestSuite {
         
     public:
         
+        /**
+         * Test private storeParameters()
+         */
         void testStoreParameters() {
             fwave.storeParameters(16.0, 9.0, 24.0, -4.5, -16.0, -16.0);
             TSM_ASSERT_DELTA("[Regular] Left water heigt", fwave.h_l, 16.0, TOLERANCE);
@@ -43,6 +49,9 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[ZeroHeight] Right bathymetry", fwave.b_r, -9.0, TOLERANCE);
         }
         
+       /**
+        * Test numerical flux jump computation
+        */
         void testComputeFluxJump() {
             // h_l = 16
             // hu_l = 24
@@ -65,6 +74,9 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("Second component", fwave.delta_f_2, -543.44833333333333333333, TOLERANCE);
         }
         
+       /**
+        * Test computation of eigencoefficients
+        */
         void testComputeEigencoefficients() {
             // h_l = 6
             // hu_l = 13
@@ -81,6 +93,9 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("Second eigencoefficient", fwave.alpha_2, -7.14145232945393453707, TOLERANCE);
         }
         
+        /**
+         * Test computation of net updates
+         */
         void testComputeNetUpdates() {
             T netUpdateLeft_h, netUpdateLeft_hu;
             T netUpdateRight_h, netUpdateRight_hu;
