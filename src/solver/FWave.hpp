@@ -308,23 +308,19 @@ namespace solver {
                     // nothing to do here
                     return;
                 } if(b_l >= -tolerance) {
-                    // left one is a dry cell
+                    // left one is a dry cell: reflecting boundary
                     // left cell should be the same height and bathymetry
                     // but opposite momentum
-                    h_l = h_r;
-                    hu_l = -hu_r;
-                    b_l = b_r;
+                    storeParameters(h_r, h_r, -hu_r, hu_r, b_r, b_r);
                 } else if(b_r >= -tolerance) {
-                    // right one is a dry cell
+                    // right one is a dry cell: reflecting boundary
                     // right cell should be the same height and bathymetry
                     // but opposite momentum
-                    h_r = h_l;
-                    hu_r = -hu_l;
-                    b_r = b_l;
+                    storeParameters(h_l, h_l, hu_l, -hu_l, b_l, b_l);
+                } else {
+                    // left and right cell are both wet
+                    storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
                 }
-                
-                // Store params
-                storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
                 
                 computeEigenvalues();
                 computeEigencoefficients();
@@ -384,22 +380,30 @@ namespace solver {
                  */
                 if(lambda_1 < 0.0) {
                     // to left
-                    netUpdateLeft_h += alpha_1;
-                    netUpdateLeft_hu += alpha_1 * lambda_1;
+                    if(b_l < -tolerance) {
+                        netUpdateLeft_h += alpha_1;
+                        netUpdateLeft_hu += alpha_1 * lambda_1;
+                    }
                 } else {
                     // to right
-                    netUpdateRight_h += alpha_1;
-                    netUpdateRight_hu += alpha_1 * lambda_1;
+                    if(b_r < -tolerance) {
+                        netUpdateRight_h += alpha_1;
+                        netUpdateRight_hu += alpha_1 * lambda_1;
+                    }
                 }
          
                 if(lambda_2 >= 0.0) {
                     // to right
-                    netUpdateRight_h += alpha_2;
-                    netUpdateRight_hu += alpha_2 * lambda_2;
+                    if(b_r < -tolerance) {
+                        netUpdateRight_h += alpha_2;
+                        netUpdateRight_hu += alpha_2 * lambda_2;
+                    }
                 } else {
                     // to left
-                    netUpdateLeft_h += alpha_2;
-                    netUpdateLeft_hu += alpha_2 * lambda_2;
+                    if(b_l < -tolerance) {
+                        netUpdateLeft_h += alpha_2;
+                        netUpdateLeft_hu += alpha_2 * lambda_2;
+                    }
                 }
             }
     };

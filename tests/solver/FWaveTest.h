@@ -207,8 +207,8 @@ class FWaveTest : public CxxTest::TestSuite {
                     netUpdateLeft_hu, netUpdateRight_hu,
                     maxWaveSpeed
                 );
-            TSM_ASSERT_DELTA("[DryLeft] Net Update Left Height", netUpdateLeft_h, -2.5, TOLERANCE);
-            TSM_ASSERT_DELTA("[DryLeft] Net Update Left Momentum", netUpdateLeft_hu, 17.50892629489312802619, TOLERANCE);
+            TSM_ASSERT_DELTA("[DryLeft] Net Update Left Height", netUpdateLeft_h, 0.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[DryLeft] Net Update Left Momentum", netUpdateLeft_hu, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[DryLeft] Net Update Right Height", netUpdateRight_h, -2.5, TOLERANCE);
             TSM_ASSERT_DELTA("[DryLeft] Net Update Right Momentum", netUpdateRight_hu, -17.50892629489312802619, TOLERANCE);
             TSM_ASSERT_DELTA("[DryLeft] Max Wave Speed", maxWaveSpeed, 7.00357051795725121047, TOLERANCE);
@@ -222,8 +222,8 @@ class FWaveTest : public CxxTest::TestSuite {
                 );
             TSM_ASSERT_DELTA("[DryRight] Net Update Left Height", netUpdateLeft_h, -6.5, TOLERANCE);
             TSM_ASSERT_DELTA("[DryRight] Net Update Left Momentum", netUpdateLeft_hu, 71.97851241863782780576, TOLERANCE);
-            TSM_ASSERT_DELTA("[DryRight] Net Update Right Height", netUpdateRight_h, -6.5, TOLERANCE);
-            TSM_ASSERT_DELTA("[DryRight] Net Update Right Momentum", netUpdateRight_hu, -71.97851241863782780576, TOLERANCE);
+            TSM_ASSERT_DELTA("[DryRight] Net Update Right Height", netUpdateRight_h, 0.0, TOLERANCE);
+            TSM_ASSERT_DELTA("[DryRight] Net Update Right Momentum", netUpdateRight_hu, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[DryRight] Max Wave Speed", maxWaveSpeed, 11.07361729517505043166, TOLERANCE);
             
             // Both Bathymetry >= 0
