@@ -285,6 +285,55 @@ namespace solver {
                 T &netUpdateRight_hu,
                 T &maxWaveSpeed
             ) {
+                T waveSpeedLeft, waveSpeedRight;
+                computeNetUpdates(h_l, h_r,
+                    hu_l, hu_r,
+                    b_l, b_r,
+                    netUpdateLeft_h, netUpdateRight_h,
+                    netUpdateLeft_hu, netUpdateRight_hu,
+                    waveSpeedLeft, waveSpeedRight
+                );
+                
+                /**
+                 * **Compute Maximum wavespeeds**
+                 *
+                 * \f[\lambda_{\text{max}} = \max\left\{ \left| \lambda_1 \right|, \left| \lambda_2 \right| \right\}\f]
+                 */
+                // Note: We're not using the raw lambda_1/2 here, but the returned left and 
+                // right-going wave speeds, since it doesn't make any difference if we take
+                // the maximum abolute value of both
+                maxWaveSpeed = std::max(std::fabs(waveSpeedLeft), std::fabs(waveSpeedRight));
+            }
+            /**
+             * Compute net updates and left and right-going wave speeds
+             *
+             * @param[in]   h_l                 Left-side water height
+             * @param[in]   h_r                 Right-side water height
+             * @param[in]   hu_l                Left-side momentum
+             * @param[in]   hu_r                Right-side momentum
+             * @param[in]   b_l                 Left-side bathymetry
+             * @param[in]   b_r                 Right-side bathymetry
+             * @param[out]  netUpdateLeft_h     Left net update (water height)
+             * @param[out]  netUpdateRight_h    Right net update (water height)
+             * @param[out]  netUpdateLeft_hu    Left net update (momentum)
+             * @param[out]  netUpdateRight_hu   Right net update (momentum)
+             * @param[out]  waveSpeedLeft       Left-going wave speed
+             * @param[out]  waveSpeedRight      Right-going wave speed
+             */
+            void computeNetUpdates(
+                T h_l,
+                T h_r,
+                T hu_l,
+                T hu_r,
+                T b_l,
+                T b_r,
+                T &netUpdateLeft_h,
+                T &netUpdateRight_h,
+                T &netUpdateLeft_hu,
+                T &netUpdateRight_hu,
+                T &waveSpeedLeft,
+                T &waveSpeedRight
+            ) {
                 // Height cannot be negative
                 assert(h_l >= 0);
                 assert(h_r >= 0);
@@ -294,7 +343,8 @@ namespace solver {
                 netUpdateLeft_hu = 0.0;
                 netUpdateRight_h = 0.0;
                 netUpdateRight_hu = 0.0;
-                maxWaveSpeed = 0.0;
+                waveSpeedLeft = 0.0;
+                waveSpeedRight = 0.0;
                                 
                 // handle edge case "both heights numerically zero"
                 // in that case, just return zero for everything
@@ -337,10 +387,6 @@ namespace solver {
                  * \end{cases}
                  * \f]
                  */
-                /*
-                // Currently not used
-                T waveSpeedLeft = 0.0;
-                T waveSpeedRight = 0.0;
                 if(std::signbit(lambda_1) == std::signbit(lambda_2)) {
                     // same sign
                     if(std::signbit(lambda_1)) {
@@ -355,14 +401,6 @@ namespace solver {
                     waveSpeedLeft = lambda_1;
                     waveSpeedRight = lambda_2;
                 }
-                */
-                
-                /**
-                 * **Compute Maximum wavespeeds**
-                 *
-                 * \f[\lambda_{\text{max}} = \max\left\{ \left| \lambda_1 \right|, \left| \lambda_2 \right| \right\}\f]
-                 */
-                maxWaveSpeed = std::max(std::fabs(lambda_1), std::fabs(lambda_2));
                 
                 /**
                  * **Compute net updates**
