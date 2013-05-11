@@ -102,7 +102,7 @@ class FWaveTest : public CxxTest::TestSuite {
             T waveSpeedLeft, waveSpeedRight;
             T maxWaveSpeed;
             
-            // Regular: Lambda1 < 0, Lambda2 > 0
+            //! Test regular case : Lambda1 < 0, Lambda2 > 0
             fwave.computeNetUpdates(10.0, 12.5, 5.0, -3.5, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -114,7 +114,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[Regular] Net Update Right Momentum", netUpdateRight_hu, 93.70121203028153945348, TOLERANCE);
             TSM_ASSERT_DELTA("[Regular] Max Wave Speed", maxWaveSpeed, 10.59362182183554874211, TOLERANCE);
             
-            // SupersonicRight: Lambda1, Lambda2 > 0
+            //! Supersonic in right direction: Lambda1, Lambda2 > 0
             fwave.computeNetUpdates(4.5, 2.5, 20.0, 22.5, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -126,7 +126,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[SupersonicRight] Net Update Right Momentum", netUpdateRight_hu, 44.94111111111111111111, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicRight] Max Wave Speed", maxWaveSpeed, 12.24950641851166448956, TOLERANCE);
             
-            // SupersonicLeft: Lambda1, Lambda2 < 0
+            //! Test Supersonic in left direction: Lambda1, Lambda2 < 0
             fwave.computeNetUpdates(7.5, 1.4, -27.3, -25.2, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -138,7 +138,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[SupersonicLeft] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[SupersonicLeft] Max Wave Speed", maxWaveSpeed, 14.57956803440405980804, TOLERANCE);
             
-            // Steady state
+            //! Test steady state (no net updates)
             fwave.computeNetUpdates(12.0, 12.0, 14.0, 14.0, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -150,7 +150,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[Steady] Net Update Right Momentum", netUpdateRight_hu, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[Steady] Max Wave Speed", maxWaveSpeed, 12.0165514586817413307, TOLERANCE);
             
-            // Lambda1 = 0, Lambda2 > 0
+            //! Test first eigenvalue = 0
             T h = 5.0;
             T hu = h * sqrt(fwave.gravity * h);
             fwave.computeNetUpdates(h, h, hu, hu, -50.0, -50.0,
@@ -164,7 +164,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[LambdaZero] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[LambdaZero] Max Wave Speed", maxWaveSpeed, 14.00714103591450242095, TOLERANCE);
             
-            // Left Height = 0
+            //! Test left water height = 0
             fwave.computeNetUpdates(0.0, 5.0, 0.0, 2.5, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -176,7 +176,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[ZeroHeightLeft] Net Update Right Momentum", netUpdateRight_hu, 74.31818051441438335285, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeightLeft] Max Wave Speed", maxWaveSpeed, 5.45227220576575334114, TOLERANCE);
             
-            // Right Height = 0
+            //! Test right water height = 0
             fwave.computeNetUpdates(5.0, 0.0, 2.5, 0.0, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -188,7 +188,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[ZeroHeightRight] Net Update Right Momentum", netUpdateRight_hu, -74.31818051441438335285, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeightRight] Max Wave Speed", maxWaveSpeed, 5.45227220576575334114, TOLERANCE);
             
-            // Both Height = 0
+            //! Test both water heights = 0
             fwave.computeNetUpdates(0.0, 0.0, 2.5, 1.5, -50.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
@@ -200,7 +200,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[ZeroHeightBoth] Net Update Right Momentum", netUpdateRight_hu, 0, TOLERANCE);
             TSM_ASSERT_DELTA("[ZeroHeightBoth] Max Wave Speed", maxWaveSpeed, 0, TOLERANCE);
             
-            // Left Bathymetry >= 0 (Reflecting Boundary)
+            //! Test dry-wet (reflecting left boundary): Left Bathymetry >= 0
             // h_l, hu_l is ignored
             fwave.computeNetUpdates(10.0, 5.0, 10.0, -2.5, 0.0, -50.0,
                     netUpdateLeft_h, netUpdateRight_h,
@@ -213,7 +213,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[DryLeft] Net Update Right Momentum", netUpdateRight_hu, -17.50892629489312802619, TOLERANCE);
             TSM_ASSERT_DELTA("[DryLeft] Max Wave Speed", maxWaveSpeed, 7.00357051795725121047, TOLERANCE);
             
-            // Right Bathymetry >= 0 (Reflecting Boundary)
+            //! Test wet-dry (reflecting right boundary): Right Bathymetry >= 0
             // h_r, hu_r is ignored
             fwave.computeNetUpdates(12.5, 5.0, 6.5, 10.0, -50.0, 1.0,
                     netUpdateLeft_h, netUpdateRight_h,
@@ -226,7 +226,7 @@ class FWaveTest : public CxxTest::TestSuite {
             TSM_ASSERT_DELTA("[DryRight] Net Update Right Momentum", netUpdateRight_hu, 0.0, TOLERANCE);
             TSM_ASSERT_DELTA("[DryRight] Max Wave Speed", maxWaveSpeed, 11.07361729517505043166, TOLERANCE);
             
-            // Both Bathymetry >= 0
+            //! Test dry-dry case: Both Bathymetry >= 0
             fwave.computeNetUpdates(4.5, 3.5, 2.5, 1.5, 0.0, 0.0,
                     netUpdateLeft_h, netUpdateRight_h,
                     netUpdateLeft_hu, netUpdateRight_hu,
