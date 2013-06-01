@@ -98,10 +98,10 @@ namespace solver {
              * @param[in] h_r   Right-side water height
              * @param[in] hu_l  Left-side momentum
              * @param[in] hu_r  Right-side momentum
-             * @param[in] hu_l  Left-side bathymetry
-             * @param[in] hu_r  Right-side bathymetry
+             * @param[in] b_l  Left-side bathymetry
+             * @param[in] b_r  Right-side bathymetry
              */
-            void storeParameters(T h_l, T h_r, T hu_l, T hu_r, T b_l, T b_r) {
+            inline void storeParameters(T h_l, T h_r, T hu_l, T hu_r, T b_l, T b_r) {
                 this->h_l = h_l;
                 this->h_r = h_r;
                 this->hu_l = hu_l;
@@ -124,9 +124,11 @@ namespace solver {
            /**
             * Compute eigenvalues used in wave decomposition and store in instance variables
             */
-            void computeEigenvalues() {
-                T velocity = ( u_l * sqrt(h_l) + u_r * sqrt(h_r) ) / ( sqrt(h_l) + sqrt(h_r) );
-                T phaseVelocity = sqrt( 0.5 * gravity * ( h_l + h_r ) );
+            inline void computeEigenvalues() {
+                T sqrt_h_l = std::sqrt(h_l);
+                T sqrt_h_r = std::sqrt(h_r);
+                T velocity = ( u_l * sqrt_h_l + u_r * sqrt_h_r ) / ( sqrt_h_l + sqrt_h_r );
+                T phaseVelocity = std::sqrt( 0.5 * gravity * ( h_l + h_r ) );
                 lambda_1 = velocity - phaseVelocity;
                 lambda_2 = velocity + phaseVelocity;
             }
@@ -135,7 +137,7 @@ namespace solver {
              * Compute the flux jump as a function of left and right water height and momentum.
              * Results are stored in instance variables delta_f_1 and delta_f_2
              */
-            void computeFluxJump() {
+            inline void computeFluxJump() {
                /**
                 * **Compute flux jump**
                 * 
@@ -185,7 +187,7 @@ namespace solver {
              * Compute the eigencoefficients needed to compute the resulting waves.
              * Results are stored in instance variables alpha_1 and alpha_2
              */
-            void computeEigencoefficients() {
+            inline void computeEigencoefficients() {
                 /**
                  * **Compute Eigencoefficients**
                  * \f[
@@ -256,7 +258,10 @@ namespace solver {
              */
             FWave(T _gravity = 9.81, T _tolerance = 1e-10):
                 gravity(_gravity), tolerance(_tolerance) {}
-         
+            
+            /** Destructor */
+            ~FWave() {}
+            
             /**
              * Compute net updates and maximum wavespeed at an edge
              *
@@ -353,23 +358,23 @@ namespace solver {
                 
                 // Check for dry-wet / wet-dry cases
                 // Handle bathymetry edge-cases (wet-dry / dry-wet)
-                if(b_l >= -tolerance && b_r >= -tolerance) {
-                    // left and right cell are both dry
-                    // nothing to do here
-                    return;
-                } if(b_l >= -tolerance) {
-                    // left one is a dry cell: reflecting boundary
-                    // left cell should be the same height and bathymetry
-                    // but opposite momentum
-                    storeParameters(h_r, h_r, -hu_r, hu_r, b_r, b_r);
-                } else if(b_r >= -tolerance) {
+                if(b_l <= -tolerance && b_r <= -tolerance) {
+                    // left and right cell are both wet
+                    storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
+                } else if(b_l <= -tolerance) {
                     // right one is a dry cell: reflecting boundary
                     // right cell should be the same height and bathymetry
                     // but opposite momentum
                     storeParameters(h_l, h_l, hu_l, -hu_l, b_l, b_l);
+                } else if(b_r <= -tolerance) {
+                    // left one is a dry cell: reflecting boundary
+                    // left cell should be the same height and bathymetry
+                    // but opposite momentum
+                    storeParameters(h_r, h_r, -hu_r, hu_r, b_r, b_r);
                 } else {
-                    // left and right cell are both wet
-                    storeParameters(h_l, h_r, hu_l, hu_r, b_l, b_r);
+                    // left and right cell are both dry
+                    // nothing to do here
+                    return;
                 }
                 
                 computeEigenvalues();
@@ -387,20 +392,15 @@ namespace solver {
                  * \end{cases}
                  * \f]
                  */
-                if(std::signbit(lambda_1) == std::signbit(lambda_2)) {
-                    // same sign
-                    if(std::signbit(lambda_1)) {
-                        // both negative
-                        waveSpeedLeft = lambda_1;
-                    } else {
-                        // both positive
-                        waveSpeedRight = lambda_2;
-                    }
-                } else {
-                    // opposite sign
-                    waveSpeedLeft = lambda_1;
+                if(lambda_2 >= 0.0)
                     waveSpeedRight = lambda_2;
-                }
+                else
+                    waveSpeedRight = 0.0;
+                
+                if(lambda_1 <= 0.0)
+                    waveSpeedLeft = lambda_1;
+                else
+                    waveSpeedLeft = 0.0;
                 
                 /**
                  * **Compute net updates**
