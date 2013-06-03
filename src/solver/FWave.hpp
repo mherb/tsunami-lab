@@ -113,12 +113,12 @@ namespace solver {
                 if(h_l > tolerance)
                     this->u_l = hu_l / h_l;
                 else
-                    this->u_l = 0.0;
+                    this->u_l = (T)0.0;
              
                 if(h_r > tolerance)
                     this->u_r = hu_r / h_r;
                 else
-                    this->u_r = 0.0;
+                    this->u_r = (T)0.0;
             }
          
            /**
@@ -128,7 +128,7 @@ namespace solver {
                 T sqrt_h_l = std::sqrt(h_l);
                 T sqrt_h_r = std::sqrt(h_r);
                 T velocity = ( u_l * sqrt_h_l + u_r * sqrt_h_r ) / ( sqrt_h_l + sqrt_h_r );
-                T phaseVelocity = std::sqrt( 0.5 * gravity * ( h_l + h_r ) );
+                T phaseVelocity = std::sqrt( (T)0.5 * gravity * ( h_l + h_r ) );
                 lambda_1 = velocity - phaseVelocity;
                 lambda_2 = velocity + phaseVelocity;
             }
@@ -180,7 +180,7 @@ namespace solver {
                 
                 delta_f_1 = hu_r - hu_l;
                 delta_f_2 = (hu_r * u_r) - (hu_l * u_l)
-                    + 0.5 * gravity * (h_r * (h_r + b_r - b_l) + h_l * (-h_l + b_r - b_l));
+                    + (T)0.5 * gravity * (h_r * (h_r + b_r - b_l) + h_l * (-h_l + b_r - b_l));
             }
             
             /**
@@ -256,7 +256,7 @@ namespace solver {
              * @param[in]   _gravity            Gravity constant in m/s^2
              * @param[in]   _tolerance          Numerical tolerance
              */
-            FWave(T _gravity = 9.81, T _tolerance = 1e-10):
+            FWave(T _gravity = (T)9.81, T _tolerance = (T)1e-10):
                 gravity(_gravity), tolerance(_tolerance) {}
             
             /** Destructor */
@@ -340,16 +340,16 @@ namespace solver {
                 T &waveSpeedRight
             ) {
                 // Height cannot be negative
-                assert(h_l >= 0);
-                assert(h_r >= 0);
+                assert(h_l >= (T)0.0);
+                assert(h_r >= (T)0.0);
                 
                 // init values
-                netUpdateLeft_h = 0.0;
-                netUpdateLeft_hu = 0.0;
-                netUpdateRight_h = 0.0;
-                netUpdateRight_hu = 0.0;
-                waveSpeedLeft = 0.0;
-                waveSpeedRight = 0.0;
+                netUpdateLeft_h = (T)0.0;
+                netUpdateLeft_hu = (T)0.0;
+                netUpdateRight_h = (T)0.0;
+                netUpdateRight_hu = (T)0.0;
+                waveSpeedLeft = (T)0.0;
+                waveSpeedRight = (T)0.0;
                                 
                 // handle edge case "both heights numerically zero"
                 // in that case, just return zero for everything
@@ -392,15 +392,15 @@ namespace solver {
                  * \end{cases}
                  * \f]
                  */
-                if(lambda_2 >= 0.0)
+                if(lambda_2 >= (T)0.0)
                     waveSpeedRight = lambda_2;
                 else
-                    waveSpeedRight = 0.0;
+                    waveSpeedRight = (T)0.0;
                 
-                if(lambda_1 <= 0.0)
+                if(lambda_1 <= (T)0.0)
                     waveSpeedLeft = lambda_1;
                 else
-                    waveSpeedLeft = 0.0;
+                    waveSpeedLeft = (T)0.0;
                 
                 /**
                  * **Compute net updates**
@@ -416,7 +416,7 @@ namespace solver {
                  * \begin{bmatrix} \Delta h_r \\ \Delta hu_r \end{bmatrix} \\
                  * \f}
                  */
-                if(lambda_1 < 0.0) {
+                if(lambda_1 < (T)0.0) {
                     // to left
                     if(b_l < -tolerance) {
                         netUpdateLeft_h += alpha_1;
@@ -430,7 +430,7 @@ namespace solver {
                     }
                 }
          
-                if(lambda_2 >= 0.0) {
+                if(lambda_2 >= (T)0.0) {
                     // to right
                     if(b_r < -tolerance) {
                         netUpdateRight_h += alpha_2;
