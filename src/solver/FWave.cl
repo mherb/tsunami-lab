@@ -56,6 +56,8 @@
 				//right bathymetry
 				float b_r=b[xId+1][yId];
 
+
+
                 // init values
                 netUpdate_h[xId][yId] = 0.0;
                 netUpdate_h[xId+1][yId] = 0.0;
@@ -93,6 +95,21 @@
                     // nothing to do here
                     return;
                 }
+
+
+				float u_l; 
+				float u_r;
+				//compute u_l and u_r
+				if(h_l > tolerance)
+                    u_l = hu_l / h_l;
+                else
+                    u_l = 0.0;
+             
+                if(h_r > tolerance)
+                    u_r = hu_r / h_r;
+                else
+                    u_r = 0.0;
+
 
         	    /**
 				 * Compute eigenvalues lambda_1 and lambda_2
