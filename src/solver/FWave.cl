@@ -22,7 +22,7 @@ __constant float tolerance = 1e-10;
  * @param[out]  net_update_hu_r     Right net update (momentum)
  * @param[out]  max_wave_speed      Maximum wave speed
  */
-__kernel inline void computeNetUpdates(
+__kernel void computeNetUpdates(
     float h_l, float h_r,
     float hu_l, float hu_r,
     float b_l, float b_r,
