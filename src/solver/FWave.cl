@@ -1,6 +1,6 @@
 
 // Gravity in m/s^2
-__constant float gravity = 9.81;
+__constant float gravity = 9.81f;
 
 // Numerical tolerance for comparisons
 __constant float tolerance = 1e-10;
@@ -23,9 +23,9 @@ __constant float tolerance = 1e-10;
  * @param[out]  max_wave_speed      Maximum wave speed
  */
 __kernel inline void computeNetUpdates(
-    const float h_l, const float h_r,
-    const float hu_l, const float hu_r,
-    const float b_l, const float b_r,
+    float h_l, float h_r,
+    float hu_l, float hu_r,
+    float b_l, float b_r,
     __global float* net_update_h_l, __global float* net_update_h_r,
     __global float* net_update_hu_l, __global float* net_update_hu_r,
     __global float* max_wave_speed) {
@@ -37,11 +37,11 @@ __kernel inline void computeNetUpdates(
     
     // TODO: init the buffers with zero using clEnqueueFillBuffer
     // so we don't have to do that in the kernel
-    float *net_update_h_l = 0.f;
-    float *net_update_h_r = 0.f;
-    float *net_update_hu_l = 0.f;
-    float *net_update_hu_r = 0.f;
-    float *max_wave_speed = 0.f;
+    *net_update_h_l = 0.f;
+    *net_update_h_r = 0.f;
+    *net_update_hu_l = 0.f;
+    *net_update_hu_r = 0.f;
+    *max_wave_speed = 0.f;
     
     // handle edge case "both heights numerically zero"
     // in that case, just return zero for everything
@@ -111,7 +111,7 @@ __kernel inline void computeNetUpdates(
         // to left: if left bound is not reflecting => update
         if(boundary_type != 1) {
             *net_update_h_l += alpha_1;
-            *net_update_hu_k += alpha_1 * lambda_1;
+            *net_update_hu_l += alpha_1 * lambda_1;
         }
     } else {
         // to right: if right bound is not reflecting => update
