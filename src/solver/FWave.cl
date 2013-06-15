@@ -32,9 +32,6 @@ __kernel void computeNetUpdates(
     
     // Hint: maybe use native_* functions (Table 6.9) for roots and division?
     
-    const float u_l = (h_l > tolerance) ? (hu_l / h_l) : 0.f;
-    const float u_r = (h_r > tolerance) ? (hu_r / h_r) : 0.f;
-    
     // TODO: init the buffers with zero using clEnqueueFillBuffer
     // so we don't have to do that in the kernel
     *net_update_h_l = 0.f;
@@ -78,6 +75,9 @@ __kernel void computeNetUpdates(
         // nothing to do here
         return;
     }
+    
+    const float u_l = (h_l > tolerance) ? (hu_l / h_l) : 0.f;
+    const float u_r = (h_r > tolerance) ? (hu_r / h_r) : 0.f;
     
     // Compute eigenvalues lambda_1 and lambda_2
     float sqrt_h_l = sqrt(h_l);
