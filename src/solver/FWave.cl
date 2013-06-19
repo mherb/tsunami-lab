@@ -88,11 +88,10 @@ __kernel void computeNetUpdates(
     float2 sqrt_h = (float2)(sqrt(h.x), sqrt(h.y));
     // compute velocity
     float velocity = (dot(u, sqrt_h)) / ( sqrt_h.x + sqrt_h.y );
-    // Hint: maybe use dot product here too?
+	//compute phase velocity
     float phase_velocity = sqrt(0.5f * gravity * ( h.x + h.y ) );
     // Compute eigenvalues lambda
-    float2 lambda_1 = (float2)(velocity - phase_velocity, -1); // (lambda.x, -1)
-	float2 lambda_2 = (float2)(velocity + phase_velocity, -1); // (lambda.y, -1)
+ 	float2 lambda = (float2)(velocity - phase_velocity, velocity + phase_velocity);
 
 	// Compute auxiliary vector delta_f_h to be able to use dot product when computing delta_f
 	float2 delta_f_h = (float2)(-h.x + b.y - b.x, h.y + b.y - b.x);
@@ -100,40 +99,40 @@ __kernel void computeNetUpdates(
 		(hu.y * u.y) - (hu.x * u.x)
         + 0.5f * gravity * (dot(h, delta_f_h)));
 
-    float lambda_diff = lambda_2.x - lambda_1.x;
+    float lambda_diff = lambda.y - lambda.x;
 
     // Compute the eigencoefficients alpha needed
     // to compute the resulting waves.
-    float2 alpha = (float2)(dot(lambda_1, delta_f), -dot(lambda_2, delta_f)) / lambda_diff;
+    float2 alpha = (float2)((lambda.y * delta_f.x - delta_f.y), (-lambda.x * delta_f.x + delta_f.y))/ lambda_diff;
     
     // Compute max wavespeed
-    *max_wave_speed = fmax(fabs(lambda_1.x), fabs(lambda_2.x));
+    *max_wave_speed = fmax(fabs(lambda.x), fabs(lambda.y));
 
     // Compute net updates
     if(lambda.x < 0.f) {
         // to left: if left bound is not reflecting => update
         if(boundary_type != 1) {
             net_update_h.x += alpha.x;
-            net_update_hu.x += alpha.x * lambda_1.x;
+            net_update_hu.x += alpha.x * lambda.x;
         }
     } else {
         // to right: if right bound is not reflecting => update
         if(boundary_type != 2) {
             net_update_h.y += alpha.x;
-            net_update_hu.y += alpha.x * lambda_1.x;
+            net_update_hu.y += alpha.x * lambda.x;
         }
     }
     if(lambda.y >= 0.f) {
         // to right: if right bound is not reflecting => update
         if(boundary_type != 2) {
             net_update_h.y += alpha.y;
-            net_update_hu.y += alpha.y * lambda_2.x;
+            net_update_hu.y += alpha.y * lambda.y;
         }
     } else {
         // to left: if left bound is not reflecting => update
         if(boundary_type != 1) {
             net_update_h.x += alpha.y;
-            net_update_hu.x += alpha.y * lambda_2.x;
+            net_update_hu.x += alpha.y * lambda.y;
         }
     }
 
