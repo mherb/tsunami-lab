@@ -55,29 +55,31 @@ __kernel void computeNetUpdates(
     
     // Check for dry-wet / wet-dry cases
     // Handle bathymetry edge-cases (wet-dry / dry-wet)
-    if(b.x <= -tolerance && b.y <= -tolerance) {
-        // left and right cell are both wet
-		// no need to change values
-    } else if(b.x <= -tolerance) {
-        // right one is a dry cell: reflecting boundary
-        // right cell should be the same height and bathymetry
-        // but opposite momentum
-		h.y = h.x;
-		hu.y = -hu.x;
-		b.y = b.x;
-        boundary_type = 2;
-    } else if(b.y <= -tolerance) {
-        // left one is a dry cell: reflecting boundary
-        // left cell should be the same height and bathymetry
-        // but opposite momentum
-		h.x = h.y;
-		hu.x = -hu.y;
-		b.x = b.y;
-        boundary_type = 1;
-    } else {
+    if(b.x > -tolerance && b.y > -tolerance) {
         // left and right cell are both dry
         // nothing to do here
         return;
+	}else{
+
+	// b.x <= -tolerance && b.y > -tolerance
+	int rightCellDry = (b.x <= -tolerance)*(b.y > -tolerance);
+        // right one is a dry cell: reflecting boundary
+        // right cell should be the same height and bathymetry
+        // but opposite momentum
+		h.y = rightCellDry * h.x + !rightCellDry * h.y;
+		hu.y = -rightCellDry * hu.x + !rightCellDry * hu.y;
+		b.y = rightCellDry * b.x + !rightCellDry * b.y;
+        boundary_type = rightCellDry * 2 + !rightCellDry * boundary_type;
+
+	// b.y <= -tolerance && b.x > -tolerance
+	int leftCellDry = (b.y <= -tolerance)*(b.x > -tolerance);
+        // left one is a dry cell: reflecting boundary
+        // left cell should be the same height and bathymetry
+        // but opposite momentum
+		h.x = leftCellDry * h.y + !leftCellDry * h.x;
+		hu.x = - leftCellDry * hu.y + !leftCellDry * hu.x;
+		b.x = leftCellDry * b.y + !leftCellDry * b.x;
+        boundary_type = leftCellDry * 1 + !leftCellDry * boundary_type;
     }
     
     const float u_l = (h.x > tolerance) ? (hu.x / h.x) : 0.f;
@@ -109,32 +111,21 @@ __kernel void computeNetUpdates(
     *max_wave_speed = fmax(fabs(lambda.x), fabs(lambda.y));
 
     // Compute net updates
-    if(lambda.x < 0.f) {
-        // to left: if left bound is not reflecting => update
-        if(boundary_type != 1) {
-            net_update_h.x += alpha.x;
-            net_update_hu.x += alpha.x * lambda.x;
-        }
-    } else {
-        // to right: if right bound is not reflecting => update
-        if(boundary_type != 2) {
-            net_update_h.y += alpha.x;
-            net_update_hu.y += alpha.x * lambda.x;
-        }
-    }
-    if(lambda.y >= 0.f) {
-        // to right: if right bound is not reflecting => update
-        if(boundary_type != 2) {
-            net_update_h.y += alpha.y;
-            net_update_hu.y += alpha.y * lambda.y;
-        }
-    } else {
-        // to left: if left bound is not reflecting => update
-        if(boundary_type != 1) {
-            net_update_h.x += alpha.y;
-            net_update_hu.x += alpha.y * lambda.y;
-        }
-    }
+        //if(lambda.x < 0.f && boundary_type != 1)
+        net_update_h.x += (lambda.x < 0.f)*(boundary_type != 1)*(alpha.x);
+        net_update_hu.x += (lambda.x < 0.f)*(boundary_type != 1)*(alpha.x * lambda.x);
+        
+		//if(lambda.x >= 0.f && boundary_type != 2)
+		net_update_h.y += (lambda.x >= 0.f)*(boundary_type != 2)*(alpha.x);
+        net_update_hu.y += (lambda.x >= 0.f)*(boundary_type != 2)*(alpha.x * lambda.x);
+    
+   		//if(lambda.y >= 0.f && boundary_type != 2)
+        net_update_h.y += (lambda.y >= 0.f)*(boundary_type != 2)*(alpha.y);
+        net_update_hu.y += (lambda.y >= 0.f)*(boundary_type != 2)*(alpha.y * lambda.y);
+
+       	//if(lambda.y < 0.f && boundary_type != 1)
+        net_update_h.x += (lambda.y < 0.f)*(boundary_type != 1)*(alpha.y);
+        net_update_hu.x += (lambda.y < 0.f)*(boundary_type != 1)*(alpha.y * lambda.y);
 
 	*net_update_h_l = net_update_h.x;
 	*net_update_h_r = net_update_h.y;
