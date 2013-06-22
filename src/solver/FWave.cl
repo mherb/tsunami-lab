@@ -1,3 +1,9 @@
+// Use local or global memory according to preprocessor definition
+#ifdef MEM_LOCAL
+#define SOLVER_MEM __local
+#else
+#define SOLVER_MEM __global
+#endif
 
 // Gravity in m/s^2
 #define GRAVITY 9.81f
@@ -26,9 +32,9 @@ __kernel void computeNetUpdates(
     float h_l, float h_r,
     float hu_l, float hu_r,
     float b_l, float b_r,
-    __global float* net_update_h_l, __global float* net_update_h_r,
-    __global float* net_update_hu_l, __global float* net_update_hu_r,
-    __global float* max_wave_speed) {
+    SOLVER_MEM float* net_update_h_l, SOLVER_MEM float* net_update_h_r,
+    SOLVER_MEM float* net_update_hu_l, SOLVER_MEM float* net_update_hu_r,
+    SOLVER_MEM float* max_wave_speed) {
     
     // Hint: maybe use native_* functions (Table 6.9) for roots and division?
     
