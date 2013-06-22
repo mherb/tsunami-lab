@@ -55,38 +55,23 @@ __kernel void computeNetUpdates(
     if(h.x < TOLERANCE && h.y < TOLERANCE)
         return;
     
-    // Boundary type: Regular (0), Reflecting Left Boundary (1), Reflecting Right Boundary (2)
-    // TODO: maybe use typedef or #defines here
-    unsigned char boundary_type = 0;
-    
     // Check for dry-wet / wet-dry cases
-    // Handle bathymetry edge-cases (wet-dry / dry-wet)
-
-    if(b.x > -TOLERANCE && b.y > -TOLERANCE) {
-        // left and right cell are both dry
-        // nothing to do here
+    // cell state for left and right cell (1 = wet, 0 = dry)
+    int2 cell_state = islessequal(b, -(float2)(TOLERANCE, TOLERANCE));
+    
+    if(!cell_state.x && !cell_state.y) {
+        // both cells dry
         return;
-	}else{
-
-	// b.x <= -tolerance && b.y > -tolerance
-	int rightCellDry = (b.x <= -TOLERANCE)*(b.y > -tolerance);
-        // right one is a dry cell: reflecting boundary
-        // right cell should be the same height and bathymetry
-        // but opposite momentum
-		h.y = rightCellDry * h.x + !rightCellDry * h.y;
-		hu.y = -rightCellDry * hu.x + !rightCellDry * hu.y;
-		b.y = rightCellDry * b.x + !rightCellDry * b.y;
-        boundary_type = rightCellDry * 2 + !rightCellDry * boundary_type;
-
-	// b.y <= -tolerance && b.x > -tolerance
-	int leftCellDry = (b.y <= -TOLERANCE)*(b.x > -tolerance);
-        // left one is a dry cell: reflecting boundary
-        // left cell should be the same height and bathymetry
-        // but opposite momentum
-		h.x = leftCellDry * h.y + !leftCellDry * h.x;
-		hu.x = - leftCellDry * hu.y + !leftCellDry * hu.x;
-		b.x = leftCellDry * b.y + !leftCellDry * b.x;
-        boundary_type = leftCellDry * 1 + !leftCellDry * boundary_type;
+    } else if(!cell_state.x) {
+        // left cell is dry
+        h.x = h.y;
+        hu.x = -hu.y;
+        b.x = b.y;
+    } else if(!cell_state.y) {
+        // right cell is dry
+        h.y = h.x;
+        hu.y = -hu.x;
+        b.y = b.x;
     }
     
     const float u_l = (h.x > TOLERANCE) ? (hu.x / h.x) : 0.f;
@@ -117,27 +102,30 @@ __kernel void computeNetUpdates(
     
     float2 net_update_left =  (float2)( 0.f, 0.f );
     float2 net_update_right = (float2)( 0.f, 0.f );
-    // Compute net updates
-
-        //if(lambda.x < 0.f && boundary_type != 1)
-        net_update_h.x += (lambda.x < 0.f)*(boundary_type != 1)*(alpha.x);
-        net_update_hu.x += (lambda.x < 0.f)*(boundary_type != 1)*(alpha.x * lambda.x);
-        
-		//if(lambda.x >= 0.f && boundary_type != 2)
-		net_update_h.y += (lambda.x >= 0.f)*(boundary_type != 2)*(alpha.x);
-        net_update_hu.y += (lambda.x >= 0.f)*(boundary_type != 2)*(alpha.x * lambda.x);
     
-   		//if(lambda.y >= 0.f && boundary_type != 2)
-        net_update_h.y += (lambda.y >= 0.f)*(boundary_type != 2)*(alpha.y);
-        net_update_hu.y += (lambda.y >= 0.f)*(boundary_type != 2)*(alpha.y * lambda.y);
-
-       	//if(lambda.y < 0.f && boundary_type != 1)
-        net_update_h.x += (lambda.y < 0.f)*(boundary_type != 1)*(alpha.y);
-        net_update_hu.x += (lambda.y < 0.f)*(boundary_type != 1)*(alpha.y * lambda.y);
-
-	*net_update_h_l = net_update_h.x;
-	*net_update_h_r = net_update_h.y;
-	*net_update_hu_l = net_update_hu.x;
-	*net_update_hu_r = net_update_hu.y;
+    // Compute net updates
+    // Compute net updates
+    // (lambda1 < 0, lambda2 < 0)
+    int2 dir = isless(lambda, (float2)(0.f));
+    // Vector containing combinations of possible updates to left/right
+    //   (lambda1 > 0)  * (left cell wet)
+    //   (lambda2 > 0)  * (left cell wet)
+    //   (lambda1 <= 0) * (right cell wet)
+    //   (lambda1 <= 0) * (right cell wet)
+    float4 update = convert_float4((int4)(dir, !dir) * (int4)((int2)cell_state.x, (int2)cell_state.y));
+    // (alpha1*lambda1, alpha2*lambda2)
+    float2 alpha_lambda = alpha*lambda;
+    // vector containing packed data of alpha, alpha, alpha*lambda, alpha*lambda
+    float8 data = (float8)((float4)(alpha, alpha), (float4)(alpha_lambda, alpha_lambda));
+    // multiple packed data with update mask, leaving only those values greater than zero
+    // that should contribute to the net updates (e.g. all updates to dry cells are zero)
+    data *= (float8)(update, update);
+    // Add even indices with odd indices to accumulate results from both waves
+    float4 net_update = data.odd + data.even;
+    
+    *net_update_h_l = net_update.x;
+    *net_update_h_r = net_update.y;
+    *net_update_hu_l = net_update.z;
+    *net_update_hu_r = net_update.w;
 
 }
