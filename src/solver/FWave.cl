@@ -1,9 +1,9 @@
 
 // Gravity in m/s^2
-__constant float gravity = 9.81f;
+#define GRAVITY 9.81f
 
 // Numerical tolerance for comparisons
-__constant float tolerance = 1e-10;
+#define TOLERANCE 0.00001
 
 /**
  * OpenCl FWave solver Kernel function
@@ -42,7 +42,7 @@ __kernel void computeNetUpdates(
     
     // handle edge case "both heights numerically zero"
     // in that case, just return zero for everything
-    if(h_l < tolerance && h_r < tolerance)
+    if(h_l < TOLERANCE && h_r < TOLERANCE)
         return;
     
     // Boundary type: Regular (0), Reflecting Left Boundary (1), Reflecting Right Boundary (2)
@@ -51,10 +51,10 @@ __kernel void computeNetUpdates(
     
     // Check for dry-wet / wet-dry cases
     // Handle bathymetry edge-cases (wet-dry / dry-wet)
-    if(b_l <= -tolerance && b_r <= -tolerance) {
+    if(b_l <= -TOLERANCE && b_r <= -TOLERANCE) {
         // left and right cell are both wet
 		// no need to change values
-    } else if(b_l <= -tolerance) {
+    } else if(b_l <= -TOLERANCE) {
         // right one is a dry cell: reflecting boundary
         // right cell should be the same height and bathymetry
         // but opposite momentum
@@ -62,7 +62,7 @@ __kernel void computeNetUpdates(
 		hu_r = -hu_l;
 		b_r = b_l;
         boundary_type = 2;
-    } else if(b_r <= -tolerance) {
+    } else if(b_r <= -TOLERANCE) {
         // left one is a dry cell: reflecting boundary
         // left cell should be the same height and bathymetry
         // but opposite momentum
@@ -76,8 +76,8 @@ __kernel void computeNetUpdates(
         return;
     }
     
-    const float u_l = (h_l > tolerance) ? (hu_l / h_l) : 0.f;
-    const float u_r = (h_r > tolerance) ? (hu_r / h_r) : 0.f;
+    const float u_l = (h_l > TOLERANCE) ? (hu_l / h_l) : 0.f;
+    const float u_r = (h_r > TOLERANCE) ? (hu_r / h_r) : 0.f;
     
     // Compute eigenvalues lambda_1 and lambda_2
     float sqrt_h_l = sqrt(h_l);
@@ -85,7 +85,7 @@ __kernel void computeNetUpdates(
     // Hint: use dot product here
     float velocity = ( u_l * sqrt_h_l + u_r * sqrt_h_r ) / ( sqrt_h_l + sqrt_h_r );
     // Hint: maybe use dot product here too?
-    float phase_velocity = sqrt(0.5f * gravity * ( h_l + h_r ) );
+    float phase_velocity = sqrt(0.5f * GRAVITY * ( h_l + h_r ) );
     float lambda_1 = velocity - phase_velocity;
     float lambda_2 = velocity + phase_velocity;
 
@@ -94,7 +94,7 @@ __kernel void computeNetUpdates(
     float delta_f_1 = hu_r - hu_l;
     // Hint: use dot product(s) here
     float delta_f_2 = (hu_r * u_r) - (hu_l * u_l)
-        + 0.5f * gravity * (h_r * (h_r + b_r - b_l) + h_l * (-h_l + b_r - b_l));
+        + 0.5f * GRAVITY * (h_r * (h_r + b_r - b_l) + h_l * (-h_l + b_r - b_l));
 
     float lambda_diff = lambda_2 - lambda_1;
 
