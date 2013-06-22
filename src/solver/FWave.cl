@@ -1,9 +1,15 @@
+// Use local or global memory according to preprocessor definition
+#ifdef MEM_LOCAL
+#define SOLVER_MEM __local
+#else
+#define SOLVER_MEM __global
+#endif
 
 // Gravity in m/s^2
-__constant float gravity = 9.81f;
+#define GRAVITY 9.81f
 
 // Numerical tolerance for comparisons
-__constant float tolerance = 1e-10;
+#define TOLERANCE 0.00001
 
 /**
  * OpenCl FWave solver Kernel function
@@ -26,15 +32,13 @@ __kernel void computeNetUpdates(
     float h_l, float h_r,
     float hu_l, float hu_r,
     float b_l, float b_r,
-    __global float* net_update_h_l, __global float* net_update_h_r,
-    __global float* net_update_hu_l, __global float* net_update_hu_r,
-    __global float* max_wave_speed) {
-
-
-	float2 h = (float2)(h_l, h_r);
+    SOLVER_MEM float* net_update_h_l, SOLVER_MEM float* net_update_h_r,
+    SOLVER_MEM float* net_update_hu_l, SOLVER_MEM float* net_update_hu_r,
+    SOLVER_MEM float* max_wave_speed) {
+    
+    float2 h = (float2)(h_l, h_r);
     float2 hu = (float2)(hu_l, hu_r);
     float2 b= (float2)(b_l, b_r);
-
     
     // Hint: maybe use native_* functions (Table 6.9) for roots and division?
     
@@ -46,7 +50,7 @@ __kernel void computeNetUpdates(
     
     // handle edge case "both heights numerically zero"
     // in that case, just return zero for everything
-    if(h.x < tolerance && h.y < tolerance)
+    if(h.x < TOLERANCE && h.y < TOLERANCE)
         return;
     
     // Boundary type: Regular (0), Reflecting Left Boundary (1), Reflecting Right Boundary (2)
@@ -55,10 +59,10 @@ __kernel void computeNetUpdates(
     
     // Check for dry-wet / wet-dry cases
     // Handle bathymetry edge-cases (wet-dry / dry-wet)
-    if(b.x <= -tolerance && b.y <= -tolerance) {
+    if(b.x <= -TOLERANCE && b.y <= -TOLERANCE) {
         // left and right cell are both wet
 		// no need to change values
-    } else if(b.x <= -tolerance) {
+    } else if(b.x <= -TOLERANCE) {
         // right one is a dry cell: reflecting boundary
         // right cell should be the same height and bathymetry
         // but opposite momentum
@@ -66,7 +70,7 @@ __kernel void computeNetUpdates(
 		hu.y = -hu.x;
 		b.y = b.x;
         boundary_type = 2;
-    } else if(b.y <= -tolerance) {
+    } else if(b.y <= -TOLERANCE) {
         // left one is a dry cell: reflecting boundary
         // left cell should be the same height and bathymetry
         // but opposite momentum
@@ -80,8 +84,8 @@ __kernel void computeNetUpdates(
         return;
     }
     
-    const float u_l = (h.x > tolerance) ? (hu.x / h.x) : 0.f;
-    const float u_r = (h.y > tolerance) ? (hu.y / h.y) : 0.f;
+    const float u_l = (h.x > TOLERANCE) ? (hu.x / h.x) : 0.f;
+    const float u_r = (h.y > TOLERANCE) ? (hu.y / h.y) : 0.f;
 	const float2 u = (float2)(u_l, u_r);
     
 
@@ -89,7 +93,7 @@ __kernel void computeNetUpdates(
     // compute velocity
     float velocity = (dot(u, sqrt_h)) / ( sqrt_h.x + sqrt_h.y );
 	//compute phase velocity
-    float phase_velocity = sqrt(0.5f * gravity * ( h.x + h.y ) );
+    float phase_velocity = sqrt(0.5f * GRAVITY * ( h.x + h.y ) );
     // Compute eigenvalues lambda
  	float2 lambda = (float2)(velocity - phase_velocity, velocity + phase_velocity);
 
@@ -97,7 +101,7 @@ __kernel void computeNetUpdates(
 	float2 delta_f_h = (float2)(-h.x + b.y - b.x, h.y + b.y - b.x);
     float2 delta_f = (float2)(hu.y - hu.x,
 		(hu.y * u.y) - (hu.x * u.x)
-        + 0.5f * gravity * (dot(h, delta_f_h)));
+        + 0.5f * GRAVITY * (dot(h, delta_f_h)));
 
     float lambda_diff = lambda.y - lambda.x;
 
